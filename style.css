@@ -1251,3 +1251,55 @@ body.dark-mode .streak-menyala {
         font-size: 12px !important;
     }
 }
+/* --- PAKSA PERBAIKAN TUJUAN PEMBELAJARAN & MENU HP --- */
+#tujuan-detail-kursus {
+    display: block !important;
+    flex-direction: column !important;
+    list-style-type: disc !important;
+    padding-left: 20px !important;
+    margin: 10px 0 15px 0 !important;
+}
+
+#tujuan-detail-kursus li {
+    display: list-item !important;
+    width: 100% !important;
+    margin-bottom: 8px !important;
+    line-height: 1.5 !important;
+    font-size: 13.5px !important;
+    text-align: left !important;
+}
+
+@media (max-width: 768px) {
+    /* Sembunyikan menu utama di HP secara default */
+    #wadah-menu-utama {
+        display: none !important;
+    }
+
+    /* Tampilkan menu utama saat tombol ☰ Menu diklik */
+    #wadah-menu-utama.terbuka {
+        display: block !important;
+        width: 100% !important;
+        margin-top: 12px !important;
+        padding-top: 10px !important;
+        border-top: 1px solid var(--border-color) !important;
+    }
+
+    /* Susun daftar menu vertikal ke bawah saat dibuka di HP */
+    #wadah-menu-utama.terbuka #menu-list {
+        display: flex !important;
+        flex-direction: column !important;
+        gap: 6px !important;
+        width: 100% !important;
+    }
+
+    #wadah-menu-utama.terbuka .menu-item {
+        width: 100% !important;
+        text-align: left !important;
+        padding: 10px 12px !important;
+        font-size: 13.5px !important;
+    }
+
+    #btn-toggle-menu-hp {
+        display: inline-block !important;
+    }
+}
