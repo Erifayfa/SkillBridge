@@ -1164,3 +1164,90 @@ body.dark-mode .streak-menyala {
         max-width: 90vw;
     }
 }
+/* --- MENU HP TOGGLE & PERAPIAN DETAIL KURSUS --- */
+.sidebar-header-hp {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+#btn-toggle-menu-hp {
+    display: none;
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 6px 12px;
+    border-radius: 8px;
+    font-size: 13px;
+    font-weight: bold;
+    cursor: pointer;
+}
+
+/* Rapikan daftar Tujuan Pembelajaran agar tidak berjarak lebar */
+#tujuan-detail-kursus {
+    padding-left: 18px !important;
+    margin: 8px 0 14px 0 !important;
+}
+
+#tujuan-detail-kursus li {
+    margin-bottom: 6px !important;
+    line-height: 1.45 !important;
+    font-size: 13.5px;
+    text-align: left;
+}
+
+@media (max-width: 768px) {
+    /* Tampilkan tombol Menu di layar HP & sembunyikan daftar menu secara default */
+    #btn-toggle-menu-hp {
+        display: inline-block;
+    }
+
+    #wadah-menu-utama {
+        display: none;
+        margin-top: 12px;
+        padding-top: 10px;
+        border-top: 1px solid var(--border-color);
+    }
+
+    #wadah-menu-utama.terbuka {
+        display: block;
+    }
+
+    /* Ubah susunan layout utama dari samping ke atas-bawah di HP */
+    .container, .app-container {
+        flex-direction: column !important;
+    }
+
+    .sidebar {
+        width: 100% !important;
+        height: auto !important;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-color);
+    }
+
+    /* Perapian halaman Detail Kursus & Tujuan Pembelajaran di HP */
+    #halaman-detail-kursus .content-box,
+    #halaman-materi-belajar .content-box {
+        padding: 14px !important;
+    }
+
+    #tujuan-detail-kursus {
+        padding-left: 16px !important;
+        margin: 6px 0 12px 0 !important;
+    }
+
+    #tujuan-detail-kursus li {
+        font-size: 13px !important;
+        margin-bottom: 5px !important;
+        line-height: 1.4 !important;
+    }
+
+    pre, code, #materi-kode {
+        white-space: pre-wrap !important;
+        word-break: break-word !important;
+        font-size: 12px !important;
+    }
+}
