@@ -1319,3 +1319,17 @@ body.dark-mode .streak-menyala {
         letter-spacing: 0.5px !important;
     }
 }
+@media (max-width: 768px) {
+    #judul-banner-beranda {
+        font-size: 17px !important;
+        line-height: 1.35 !important;
+        margin: 8px 0 12px 0 !important;
+    }
+
+    /* Perkecil juga ikon bintang/ilustrasi di dalam kartu selamat datang */
+    #halaman-beranda svg,
+    #halaman-beranda img {
+        max-width: 75px !important;
+        height: auto !important;
+    }
+}
