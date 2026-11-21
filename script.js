@@ -510,6 +510,25 @@ function pindahHalaman(idHalaman) {
     document.querySelectorAll('.menu-item').forEach(m => m.classList.remove('aktif'));
     let menuAktif = document.getElementById('menu-' + idHalaman);
     if (menuAktif) menuAktif.classList.add('aktif');
+
+    // Otomatis tutup dropdown menu utama di HP setelah halaman dipilih
+    let wadahMenu = document.getElementById("wadah-menu-utama");
+    let btnToggle = document.getElementById("btn-toggle-menu-hp");
+    if (wadahMenu && wadahMenu.classList.contains("terbuka")) {
+        wadahMenu.classList.remove("terbuka");
+        if (btnToggle) btnToggle.innerText = "☰ Menu";
+    }
+}
+
+function toggleMenuHP() {
+    let wadahMenu = document.getElementById("wadah-menu-utama");
+    let btnToggle = document.getElementById("btn-toggle-menu-hp");
+    if (!wadahMenu) return;
+
+    wadahMenu.classList.toggle("terbuka");
+    if (btnToggle) {
+        btnToggle.innerText = wadahMenu.classList.contains("terbuka") ? "✕ Tutup" : "☰ Menu";
+    }
 }
 
 function bukaRuangBelajar(filterDipilih) {
