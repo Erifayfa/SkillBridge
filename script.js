@@ -1,60 +1,93 @@
-// --- EFEK SUARA INTERAKTIF KALEM & CERIA (WEB AUDIO API) ---
+// --- EFEK SUARA INTERAKTIF KALEM & CERIA (KOMPATIBEL HP ANDROID & IOS) ---
 let suaraAktif = localStorage.getItem("skillbridge_suara") !== "mati";
 let audioCtx = null;
+let audioSudahDibuka = false;
 
 function inisialisasiAudio() {
+    const AudioContextClass = window.AudioContext || window.webkitAudioContext;
+    if (!AudioContextClass) return;
+
     if (!audioCtx) {
-        audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        audioCtx = new AudioContextClass();
     }
+
     if (audioCtx.state === 'suspended') {
-        audioCtx.resume();
+        audioCtx.resume().catch(() => {});
+    }
+
+    // Trik khusus browser HP (Android & iOS) untuk membuka kunci audio pada sentuhan pertama
+    if (!audioSudahDibuka && audioCtx) {
+        try {
+            const buffer = audioCtx.createBuffer(1, 1, 22050);
+            const source = audioCtx.createBufferSource();
+            source.buffer = buffer;
+            source.connect(audioCtx.destination);
+            source.start(0);
+            audioSudahDibuka = true;
+        } catch (e) {}
     }
 }
+
+// Buka kunci audio otomatis pada sentuhan/klik pertama di layar HP
+['touchstart', 'pointerdown', 'click'].forEach(eventName => {
+    document.addEventListener(eventName, inisialisasiAudio, { once: true, passive: true });
+});
 
 function bunyikanSuara(jenis) {
     if (!suaraAktif) return;
     try {
         inisialisasiAudio();
-        const sekarang = audioCtx.currentTime;
-        const osc = audioCtx.createOscillator();
-        const gain = audioCtx.createGain();
-        
-        osc.connect(gain);
-        gain.connect(audioCtx.destination);
+        if (!audioCtx) return;
 
-        if (jenis === 'klik') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(520, sekarang);
-            osc.frequency.exponentialRampToValueAtTime(840, sekarang + 0.065);
-            gain.gain.setValueAtTime(0.055, sekarang);
-            gain.gain.exponentialRampToValueAtTime(0.001, sekarang + 0.065);
-            osc.start(sekarang);
-            osc.stop(sekarang + 0.065);
-        } else if (jenis === 'benar') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(523.25, sekarang);
-            osc.frequency.setValueAtTime(659.25, sekarang + 0.09);
-            osc.frequency.setValueAtTime(783.99, sekarang + 0.18);
-            gain.gain.setValueAtTime(0.09, sekarang);
-            gain.gain.exponentialRampToValueAtTime(0.001, sekarang + 0.38);
-            osc.start(sekarang);
-            osc.stop(sekarang + 0.38);
-        } else if (jenis === 'salah') {
-            osc.type = 'triangle';
-            osc.frequency.setValueAtTime(240, sekarang);
-            osc.frequency.linearRampToValueAtTime(185, sekarang + 0.25);
-            gain.gain.setValueAtTime(0.08, sekarang);
-            gain.gain.exponentialRampToValueAtTime(0.001, sekarang + 0.28);
-            osc.start(sekarang);
-            osc.stop(sekarang + 0.28);
-        } else if (jenis === 'pengingat') {
-            osc.type = 'sine';
-            osc.frequency.setValueAtTime(659.25, sekarang);
-            osc.frequency.setValueAtTime(987.77, sekarang + 0.11);
-            gain.gain.setValueAtTime(0.07, sekarang);
-            gain.gain.exponentialRampToValueAtTime(0.001, sekarang + 0.35);
-            osc.start(sekarang);
-            osc.stop(sekarang + 0.35);
+        const jalankanNada = () => {
+            const sekarang = audioCtx.currentTime;
+            const osc = audioCtx.createOscillator();
+            const gain = audioCtx.createGain();
+            
+            osc.connect(gain);
+            gain.connect(audioCtx.destination);
+
+            if (jenis === 'klik') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(520, sekarang);
+                osc.frequency.exponentialRampToValueAtTime(840, sekarang + 0.065);
+                gain.gain.setValueAtTime(0.12, sekarang);
+                gain.gain.exponentialRampToValueAtTime(0.001, sekarang + 0.065);
+                osc.start(sekarang);
+                osc.stop(sekarang + 0.065);
+            } else if (jenis === 'benar') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(523.25, sekarang);
+                osc.frequency.setValueAtTime(659.25, sekarang + 0.09);
+                osc.frequency.setValueAtTime(783.99, sekarang + 0.18);
+                gain.gain.setValueAtTime(0.16, sekarang);
+                gain.gain.exponentialRampToValueAtTime(0.001, sekarang + 0.38);
+                osc.start(sekarang);
+                osc.stop(sekarang + 0.38);
+            } else if (jenis === 'salah') {
+                osc.type = 'triangle';
+                osc.frequency.setValueAtTime(240, sekarang);
+                osc.frequency.linearRampToValueAtTime(185, sekarang + 0.25);
+                gain.gain.setValueAtTime(0.15, sekarang);
+                gain.gain.exponentialRampToValueAtTime(0.001, sekarang + 0.28);
+                osc.start(sekarang);
+                osc.stop(sekarang + 0.28);
+            } else if (jenis === 'pengingat') {
+                osc.type = 'sine';
+                osc.frequency.setValueAtTime(659.25, sekarang);
+                osc.frequency.setValueAtTime(987.77, sekarang + 0.11);
+                gain.gain.setValueAtTime(0.14, sekarang);
+                gain.gain.exponentialRampToValueAtTime(0.001, sekarang + 0.35);
+                osc.start(sekarang);
+                osc.stop(sekarang + 0.35);
+            }
+        };
+
+        // Jika HP baru membangunkan AudioContext, tunggu resume() selesai baru bunyikan nada
+        if (audioCtx.state === 'suspended') {
+            audioCtx.resume().then(jalankanNada).catch(() => {});
+        } else {
+            jalankanNada();
         }
     } catch (e) {}
 }
