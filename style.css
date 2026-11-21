@@ -1,0 +1,1012 @@
+/* --- PENGATURAN TEMA (VARIABEL CSS) --- */
+:root {
+    --bg-main: #fdfbf7;
+    --bg-sidebar: #ffffff;
+    --bg-card: #ffffff;
+    --text-primary: #333333;
+    --text-secondary: #666666;
+    --border-color: #e5e7eb;
+    --primary-color: #8b5cf6;
+    --primary-hover: #7c3aed;
+    --menu-hover: #f0e6ff;
+}
+
+/* Mode Gelap (Otomatis mengganti warna saat class 'dark-mode' ditambahkan) */
+body.dark-mode {
+    --bg-main: #121212;
+    --bg-sidebar: #1e1e1e;
+    --bg-card: #2d2d2d;
+    --text-primary: #f3f4f6;
+    --text-secondary: #9ca3af;
+    --border-color: #374151;
+    --menu-hover: #374151;
+}
+
+/* --- RESET DASAR --- */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+    transition: background-color 0.3s, color 0.3s; /* Efek transisi mulus */
+}
+
+body {
+    display: flex;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    height: 100vh;
+}
+
+/* --- SIDEBAR --- */
+.sidebar {
+    width: 260px;
+    background-color: var(--bg-sidebar);
+    padding: 20px;
+    border-right: 1px solid var(--border-color);
+    display: flex;
+    flex-direction: column;
+}
+
+.logo h2 {
+    color: var(--primary-color);
+    margin-bottom: 30px;
+}
+
+.menu-label {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-bottom: 10px;
+    font-weight: bold;
+    letter-spacing: 1px;
+}
+
+ul { list-style: none; }
+
+.menu-item {
+    padding: 12px 15px;
+    cursor: pointer;
+    border-radius: 8px;
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: var(--text-primary);
+}
+
+.menu-item:hover, .menu-item.aktif {
+    background-color: var(--menu-hover);
+    color: var(--primary-color);
+    font-weight: bold;
+}
+
+/* --- KONTEN UTAMA --- */
+.main-content {
+    flex: 1;
+    padding: 40px;
+    overflow-y: auto;
+}
+
+header h1 { font-size: 28px; margin-bottom: 5px; }
+header p { color: var(--text-secondary); margin-bottom: 30px; }
+
+/* Banner Bintang */
+.hero-banner {
+    background: linear-gradient(135deg, #eaddff, #f3e8ff);
+    padding: 30px;
+    border-radius: 16px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 30px;
+}
+
+body.dark-mode .hero-banner {
+    background: linear-gradient(135deg, #4c1d95, #5b21b6);
+}
+
+.hero-text p { font-size: 12px; font-weight: bold; color: var(--primary-color); letter-spacing: 1px;}
+body.dark-mode .hero-text p { color: #ddd6fe; }
+.hero-text h2 { font-size: 24px; margin: 10px 0; }
+.maskot { font-size: 80px; }
+
+/* Tombol Dasar */
+button {
+    background-color: var(--primary-color);
+    color: white;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: bold;
+    font-size: 14px;
+}
+button:hover { background-color: var(--primary-hover); }
+
+/* Kartu & Kotak Konten */
+.cards-container { display: flex; gap: 20px; }
+.card, .content-box {
+    background-color: var(--bg-card);
+    padding: 20px;
+    border-radius: 12px;
+    border: 1px solid var(--border-color);
+    flex: 1;
+}
+
+.angka-besar { font-size: 24px; font-weight: bold; color: var(--primary-color); margin-top: 10px; }
+.badge { background-color: #d1fae5; color: #065f46; padding: 4px 8px; border-radius: 4px; font-size: 12px; font-weight: bold; }
+.opsi-kuis { display: flex; flex-direction: column; gap: 10px; margin-top: 15px; }
+.opsi-kuis button { background-color: var(--bg-sidebar); color: var(--text-primary); border: 1px solid var(--border-color); text-align: left; }
+.opsi-kuis button:hover { background-color: var(--menu-hover); color: var(--primary-color); }
+.pesan-kuis { margin-top: 15px; font-weight: bold; }
+
+/* --- RESPONSIVITAS (TAMPILAN HP) --- */
+@media (max-width: 768px) {
+    body { flex-direction: column; }
+    .sidebar { width: 100%; border-right: none; border-bottom: 1px solid var(--border-color); padding: 15px; }
+    ul { display: flex; overflow-x: auto; gap: 10px; padding-bottom: 10px; }
+    .menu-item { white-space: nowrap; margin-bottom: 0; }
+    .hero-banner { flex-direction: column; text-align: center; gap: 20px; }
+    .cards-container { flex-direction: column; }
+    .main-content { padding: 20px; }
+}
+/* Tambahan Gaya untuk Halaman Baru */
+.btn-kembali {
+    background: #f0e6ff;
+    color: var(--primary-color);
+    padding: 8px 15px;
+    border-radius: 20px;
+    margin-bottom: 20px;
+    display: inline-block;
+}
+body.dark-mode .btn-kembali { background: #374151; color: #ddd6fe; }
+
+.banner-kategori {
+    background: #eef2ff;
+    padding: 30px;
+    border-radius: 12px;
+    margin-bottom: 20px;
+}
+body.dark-mode .banner-kategori { background: #1f2937; }
+
+.card-kursus {
+    background: var(--bg-card);
+    border: 1px solid var(--border-color);
+    padding: 20px;
+    border-radius: 12px;
+    margin-bottom: 15px;
+    cursor: pointer;
+    width: 100%; /* Pastikan melebar penuh */
+    box-sizing: border-box; /* Agar padding tidak menambah lebar */
+}
+
+.card-kursus:hover { border-color: var(--primary-color); }
+.card-kursus h4 { margin-bottom: 5px; font-size: 18px; }
+.card-kursus p { color: var(--text-secondary); margin-bottom: 15px; font-size: 14px; }
+
+.mt-20 { margin-top: 20px; }
+.btn-outline {
+    background: transparent;
+    color: var(--primary-color);
+    border: 1px solid var(--primary-color);
+}
+.btn-outline:hover { background: #f0e6ff; }
+
+.modul-box {
+    background: #fffbeb;
+    padding: 15px;
+    border-radius: 8px;
+    border: 1px solid #fde68a;
+    margin-top: 10px;
+}
+body.dark-mode .modul-box { background: #422006; border-color: #713f12; }
+
+.progress-bar-container {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 20px;
+    color: var(--text-secondary);
+    font-size: 14px;
+}
+
+.opsi-kuis button.salah { background-color: #fee2e2; border-color: #f87171; color: #991b1b; }
+.opsi-kuis button.benar { background-color: #d1fae5; border-color: #34d399; color: #065f46; }
+
+.feedback-box {
+    margin-top: 15px;
+    padding: 15px;
+    border-radius: 8px;
+    background: #f8fafc;
+    border-left: 4px solid var(--primary-color);
+}
+body.dark-mode .feedback-box { background: #1e293b; }
+/* Gaya untuk Kartu Bidang Pembelajaran */
+.card-bidang {
+    text-align: center;
+    cursor: pointer;
+    transition: transform 0.2s;
+}
+.card-bidang:hover {
+    transform: translateY(-5px);
+    border-color: var(--primary-color);
+}
+.card-bidang p {
+    font-size: 12px;
+    color: var(--text-secondary);
+    margin-top: 5px;
+}
+
+/* Gaya untuk Form Input di Studio Proyek */
+.form-grup {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-top: 15px;
+}
+.form-grup input {
+    padding: 12px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    font-size: 14px;
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+}
+.form-grup input:focus {
+    outline: none;
+    border-color: var(--primary-color);
+}
+/* --- TAMPILAN MATERI & BAR PROGRES --- */
+.progress-container { width: 100%; margin-bottom: 20px; }
+.progress-teks { 
+    display: flex; justify-content: space-between; 
+    font-size: 14px; margin-bottom: 8px; font-weight: bold;
+    color: var(--text-secondary); 
+}
+.progress-bar-bg { 
+    width: 100%; height: 12px; 
+    background-color: #e5e7eb; 
+    border-radius: 6px; overflow: hidden; 
+}
+.progress-bar-fill { 
+    height: 100%; 
+    background-color: var(--primary-color); 
+    transition: width 0.6s ease-in-out; /* Efek gerak mulus */
+}
+body.dark-mode .progress-bar-bg { background-color: #374151; }
+
+/* Kotak Kode */
+.kode-box { 
+    background-color: #1f2937; /* Warna gelap ala teks editor */
+    color: #f3f4f6; 
+    padding: 15px; 
+    border-radius: 8px; 
+    font-family: 'Courier New', Courier, monospace; 
+    margin-top: 10px;
+    line-height: 1.6;
+}
+
+/* Navigasi Bawah Materi */
+.navigasi-materi { 
+    display: flex; justify-content: space-between; 
+    align-items: center; gap: 10px; flex-wrap: wrap; 
+    margin-top: 30px;
+}
+.btn-disabled { 
+    background-color: #e5e7eb; color: #9ca3af; 
+    cursor: not-allowed; border: none;
+}
+body.dark-mode .btn-disabled { background-color: #374151; color: #6b7280; }
+
+.btn-kuis { 
+    background-color: var(--primary-hover); 
+    display: inline-flex; align-items: center; gap: 8px;
+}
+
+.mt-10 { margin-top: 10px; }
+.mb-20 { margin-bottom: 20px; }
+/* --- FITUR NOTIFIKASI (TOAST) --- */
+#wadah-notifikasi {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    z-index: 1000;
+}
+
+.notifikasi {
+    background-color: var(--primary-color);
+    color: white;
+    padding: 15px 20px;
+    border-radius: 8px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+    font-weight: bold;
+    font-size: 14px;
+    /* Animasi masuk dan keluar */
+    animation: slideIn 0.3s ease-out, fadeOut 0.4s ease-out 2.6s forwards;
+}
+
+/* Mengubah warna notif di mode gelap */
+body.dark-mode .notifikasi { background-color: var(--primary-hover); }
+
+@keyframes slideIn {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+@keyframes fadeOut {
+    from { transform: translateX(0); opacity: 1; }
+    to { transform: translateX(120%); opacity: 0; }
+}
+/* --- FITUR TANTANGAN HARIAN --- */
+.card-tantangan {
+    background: linear-gradient(to right, #fef08a, #fde047);
+    border: 1px solid #facc15;
+    padding: 20px;
+    border-radius: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 15px;
+}
+
+body.dark-mode .card-tantangan {
+    background: linear-gradient(to right, #713f12, #854d0e);
+    border-color: #a16207;
+}
+
+.tantangan-info h4 {
+    color: #854d0e;
+    margin-bottom: 5px;
+    font-size: 18px;
+}
+body.dark-mode .tantangan-info h4 { color: #fef08a; }
+
+.tantangan-info p {
+    color: #a16207;
+    font-size: 14px;
+}
+body.dark-mode .tantangan-info p { color: #fde047; }
+
+#btn-mulai-harian {
+    background-color: #ca8a04;
+    white-space: nowrap;
+}
+#btn-mulai-harian:hover { background-color: #a16207; }
+
+/* Tombol kalau sudah selesai */
+#btn-mulai-harian.selesai {
+    background-color: #16a34a; /* Hijau */
+    cursor: not-allowed;
+}
+body.dark-mode #btn-mulai-harian.selesai { background-color: #15803d; }
+
+/* Mengatur agar di layar HP tombol turun ke bawah */
+@media (max-width: 768px) {
+    .card-tantangan { flex-direction: column; text-align: left; align-items: flex-start; }
+    #btn-mulai-harian { width: 100%; }
+}
+/* --- BADGE STREAK --- */
+.badge-streak {
+    background-color: #ffedd5;
+    color: #c2410c;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 13px;
+    font-weight: bold;
+    border: 1px solid #fdba74;
+}
+
+body.dark-mode .badge-streak {
+    background-color: #431407;
+    color: #fdba74;
+    border-color: #9a3412;
+}
+/* --- FILTER RUANG BELAJAR --- */
+.filter-container {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-filter {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    border: 1px solid var(--border-color);
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 13px;
+}
+
+.btn-filter:hover, .btn-filter.aktif {
+    background-color: var(--primary-color);
+    color: white;
+    border-color: var(--primary-color);
+}
+
+/* --- PILIHAN CUSTOM MASKOT --- */
+.pilihan-maskot {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.btn-maskot {
+    background-color: var(--bg-main);
+    color: var(--text-primary);
+    border: 2px solid var(--border-color);
+    padding: 10px 15px;
+    font-size: 14px;
+}
+
+.btn-maskot:hover {
+    border-color: var(--primary-color);
+    background-color: var(--menu-hover);
+}
+/* --- BADGE STATUS SELESAI DIPELAJARI --- */
+.badge-selesai {
+    background-color: #10b981;
+    color: white;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: 12px;
+    font-weight: bold;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+}
+
+body.dark-mode .badge-selesai {
+    background-color: #059669;
+}
+
+.card-kursus.sudah-selesai {
+    border-left: 5px solid #10b981;
+}
+/* --- MODAL KONFIRMASI MODERN --- */
+.modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    padding: 20px;
+}
+
+.modal-box {
+    background-color: var(--bg-card);
+    color: var(--text-primary);
+    padding: 25px;
+    border-radius: 16px;
+    max-width: 400px;
+    width: 100%;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.2);
+    border: 1px solid var(--border-color);
+    animation: popIn 0.2s ease-out;
+}
+
+@keyframes popIn {
+    from { transform: scale(0.9); opacity: 0; }
+    to { transform: scale(1); opacity: 1; }
+}
+
+/* --- BADGE LEVEL MENENGAH --- */
+.badge-menengah {
+    background-color: #e0e7ff;
+    color: #3730a3;
+    padding: 4px 8px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+body.dark-mode .badge-menengah {
+    background-color: #312e81;
+    color: #c7d2fe;
+}
+/* --- HALAMAN PROGRES SAYA & ACHIEVEMENTS --- */
+.banner-profil-progres {
+    background: linear-gradient(135deg, #eef2ff, #f3e8ff);
+    padding: 25px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    gap: 20px;
+    border: 1px solid var(--border-color);
+}
+
+body.dark-mode .banner-profil-progres {
+    background: linear-gradient(135deg, #1e1b4b, #312e81);
+}
+
+.avatar-progres {
+    width: 65px;
+    height: 65px;
+    background-color: var(--bg-card);
+    border-radius: 50%;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 34px;
+    box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+}
+
+.badge-level-progres {
+    display: inline-block;
+    margin-top: 6px;
+    background-color: var(--bg-card);
+    color: var(--primary-color);
+    padding: 4px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+}
+
+/* Grid Kartu Pencapaian */
+.grid-achievement {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 15px;
+}
+
+.card-achievement {
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 18px;
+    display: flex;
+    align-items: center;
+    gap: 15px;
+    transition: transform 0.2s;
+}
+
+.card-achievement.terbuka {
+    border-color: #c4b5fd;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.08);
+}
+
+.card-achievement.terkunci {
+    opacity: 0.55;
+    filter: grayscale(100%);
+}
+
+.ikon-achievement {
+    width: 50px;
+    height: 50px;
+    border-radius: 50%;
+    background-color: #f3e8ff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+body.dark-mode .ikon-achievement {
+    background-color: #374151;
+}
+
+.card-achievement.terkunci .ikon-achievement {
+    background-color: #e5e7eb;
+}
+
+.chip-riwayat {
+    display: inline-block;
+    background-color: #d1fae5;
+    color: #065f46;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: bold;
+    margin: 4px;
+}
+/* --- MINI GAME: LABIRIN (MAZE) --- */
+.grid-maze {
+    display: grid;
+    grid-template-columns: repeat(8, 38px);
+    grid-template-rows: repeat(8, 38px);
+    gap: 3px;
+    justify-content: center;
+    margin: 0 auto;
+    background-color: var(--border-color);
+    padding: 6px;
+    border-radius: 12px;
+    width: fit-content;
+}
+
+.sel-maze {
+    width: 38px;
+    height: 38px;
+    border-radius: 6px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    user-select: none;
+}
+
+.sel-jalan {
+    background-color: var(--bg-card);
+}
+
+.sel-tembok {
+    background-color: #4b5563;
+}
+
+body.dark-mode .sel-tembok {
+    background-color: #111827;
+}
+
+.sel-finis {
+    background-color: #fef08a;
+}
+
+.btn-arah {
+    width: 50px;
+    height: 45px;
+    padding: 0;
+    font-size: 20px;
+    display: inline-flex;
+    justify-content: center;
+    align-items: center;
+}
+
+@media (max-width: 400px) {
+    .grid-maze {
+        grid-template-columns: repeat(8, 32px);
+        grid-template-rows: repeat(8, 32px);
+    }
+    .sel-maze {
+        width: 32px;
+        height: 32px;
+        font-size: 16px;
+    }
+}
+
+/* --- MINI GAME: TEBAK POLA ANGKA --- */
+.deret-container {
+    display: flex;
+    justify-content: center;
+    gap: 10px;
+    flex-wrap: wrap;
+}
+
+.kotak-angka {
+    width: 55px;
+    height: 55px;
+    background-color: var(--bg-main);
+    border: 2px solid var(--primary-color);
+    border-radius: 10px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    font-size: 20px;
+    font-weight: bold;
+    color: var(--primary-color);
+}
+
+.kotak-angka.tanda-tanya {
+    background-color: var(--primary-color);
+    color: white;
+}
+/* --- MINI GAME SANTAI: TANGKAP BINTANG --- */
+.arena-tangkap-box {
+    position: relative;
+    width: 100%;
+    max-width: 500px;
+    height: 280px;
+    margin: 0 auto;
+    background-color: var(--bg-main);
+    border: 2px dashed var(--primary-color);
+    border-radius: 16px;
+    overflow: hidden;
+    user-select: none;
+}
+
+.target-bintang {
+    position: absolute;
+    width: 54px;
+    height: 54px;
+    font-size: 36px;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    cursor: pointer;
+    border-radius: 50%;
+    background-color: var(--bg-card);
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.25);
+    transition: transform 0.1s, top 0.15s ease-out, left 0.15s ease-out;
+}
+
+.target-bintang:active {
+    transform: scale(0.8);
+}
+
+.overlay-arena {
+    position: absolute;
+    inset: 0;
+    background-color: rgba(0, 0, 0, 0.05);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+}
+
+/* --- LAYAR LOGIN DENGAN BACKGROUND ILUSTRASI --- */
+.login-overlay {
+    position: fixed;
+    inset: 0;
+    background-color: #f5f3ff;
+    background-image: 
+        radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.16) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(99, 102, 241, 0.18) 0%, transparent 45%),
+        url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%238b5cf6' stroke-width='1.5' stroke-opacity='0.14'%3E%3Cpath d='M20 30 L35 20 L50 30 L35 40 Z'/%3E%3Ccircle cx='90' cy='30' r='8'/%3E%3Cpath d='M82 85 L90 77 L98 85 M90 77 L90 97'/%3E%3Crect x='22' y='78' width='18' height='14' rx='3'/%3E%3Cpath d='M55 58 L65 58 M60 53 L60 63'/%3E%3C/g%3E%3C/svg%3E");
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 3000;
+    padding: 20px;
+}
+
+body.dark-mode .login-overlay {
+    background-color: #0f172a;
+    background-image: 
+        radial-gradient(circle at 15% 20%, rgba(139, 92, 246, 0.25) 0%, transparent 40%),
+        radial-gradient(circle at 85% 80%, rgba(79, 70, 229, 0.25) 0%, transparent 45%),
+        url("data:image/svg+xml,%3Csvg width='120' height='120' viewBox='0 0 120 120' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23a78bfa' stroke-width='1.5' stroke-opacity='0.15'%3E%3Cpath d='M20 30 L35 20 L50 30 L35 40 Z'/%3E%3Ccircle cx='90' cy='30' r='8'/%3E%3Cpath d='M82 85 L90 77 L98 85 M90 77 L90 97'/%3E%3Crect x='22' y='78' width='18' height='14' rx='3'/%3E%3Cpath d='M55 58 L65 58 M60 53 L60 63'/%3E%3C/g%3E%3C/svg%3E");
+}
+
+.login-box {
+    background-color: rgba(255, 255, 255, 0.92);
+    backdrop-filter: blur(10px);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    padding: 38px 32px;
+    border-radius: 20px;
+    max-width: 410px;
+    width: 100%;
+    text-align: center;
+    box-shadow: 0 20px 40px rgba(139, 92, 246, 0.12);
+}
+
+body.dark-mode .login-box {
+    background-color: rgba(30, 41, 59, 0.92);
+    border-color: rgba(167, 139, 250, 0.25);
+}
+/* --- BADGE KOIN & TOKO MASKOT --- */
+.badge-koin {
+    background-color: #fef9c3;
+    color: #a16207;
+    border: 1px solid #facc15;
+    padding: 6px 14px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+body.dark-mode .badge-koin {
+    background-color: #422006;
+    color: #fde047;
+    border-color: #854d0e;
+}
+
+.grid-maskot {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    gap: 12px;
+}
+
+.card-maskot {
+    background-color: var(--bg-main);
+    border: 2px solid var(--border-color);
+    border-radius: 14px;
+    padding: 15px 10px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.2s;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+}
+
+.card-maskot:hover {
+    transform: translateY(-3px);
+    border-color: var(--primary-color);
+}
+
+/* Tanda Karakter yang Sedang Dipakai */
+.card-maskot.dipakai {
+    border-color: #10b981;
+    background-color: #ecfdf5;
+    box-shadow: 0 4px 12px rgba(16, 185, 129, 0.15);
+}
+
+body.dark-mode .card-maskot.dipakai {
+    background-color: #064e3b;
+    border-color: #34d399;
+}
+
+/* Tanda Karakter Terkunci (Belum Dibeli) */
+.card-maskot.terkunci {
+    opacity: 0.75;
+    border-style: dashed;
+}
+
+.status-maskot-tag {
+    font-size: 11px;
+    font-weight: bold;
+    padding: 3px 10px;
+    border-radius: 12px;
+    margin-top: 4px;
+}
+
+.tag-dipakai {
+    background-color: #10b981;
+    color: white;
+}
+
+.tag-milik {
+    background-color: #e0e7ff;
+    color: #3730a3;
+}
+
+.tag-harga {
+    background-color: #fef08a;
+    color: #854d0e;
+}
+/* --- PENYEMPURNAAN WARNA MODE GELAP (DARK MODE FIX) --- */
+body.dark-mode {
+    --bg-main: #0f172a;
+    --bg-card: #1e293b;
+    --text-primary: #f8fafc;
+    --text-secondary: #94a3b8;
+    --border-color: #334155;
+}
+
+/* Sidebar & Menu di Mode Gelap */
+body.dark-mode .sidebar {
+    background-color: #1e293b;
+    border-right-color: #334155;
+}
+
+body.dark-mode .menu-item:hover,
+body.dark-mode .menu-item.aktif {
+    background-color: #312e81;
+    color: #c7d2fe;
+}
+
+/* Badge & Tombol Kembali / Filter di Mode Gelap */
+body.dark-mode .badge {
+    background-color: #312e81;
+    color: #c7d2fe;
+}
+
+body.dark-mode .btn-kembali,
+body.dark-mode .btn-filter {
+    background-color: #1e293b;
+    color: #cbd5e1;
+    border: 1px solid #334155;
+}
+
+body.dark-mode .btn-filter.aktif {
+    background-color: #7c3aed;
+    color: #ffffff;
+    border-color: #7c3aed;
+}
+
+/* Input Teks & Angka di Mode Gelap */
+body.dark-mode input {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+}
+
+body.dark-mode input::placeholder {
+    color: #64748b;
+}
+
+/* Kuis Interaktif & Feedback Box di Mode Gelap */
+body.dark-mode #wadah-opsi-kuis button {
+    background-color: #1e293b;
+    color: #f8fafc;
+    border-color: #475569;
+}
+
+body.dark-mode #wadah-opsi-kuis button:hover:not(:disabled) {
+    background-color: #334155;
+}
+
+body.dark-mode #wadah-opsi-kuis button.benar {
+    background-color: #065f46 !important;
+    border-color: #10b981 !important;
+    color: #ecfdf5 !important;
+}
+
+body.dark-mode #wadah-opsi-kuis button.salah {
+    background-color: #7f1d1d !important;
+    border-color: #ef4444 !important;
+    color: #fef2f2 !important;
+}
+
+body.dark-mode #feedback-kuis {
+    background-color: #0f172a;
+    color: #e2e8f0;
+}
+
+/* Toko Maskot & Tag Status di Mode Gelap */
+body.dark-mode .tag-milik {
+    background-color: #312e81;
+    color: #c7d2fe;
+}
+
+body.dark-mode .tag-harga {
+    background-color: #422006;
+    color: #fde047;
+}
+
+/* Progres Saya & Achievement di Mode Gelap */
+body.dark-mode .chip-riwayat {
+    background-color: #064e3b;
+    color: #a7f3d0;
+}
+
+body.dark-mode .card-achievement.terbuka {
+    border-color: #6366f1;
+    background-color: #1e293b;
+}
+
+body.dark-mode .card-achievement.terkunci .ikon-achievement {
+    background-color: #0f172a;
+}
+
+/* Mini Game di Mode Gelap */
+body.dark-mode .sel-finis {
+    background-color: #713f12;
+}
+
+body.dark-mode .kotak-angka {
+    background-color: #1e293b;
+    color: #c4b5fd;
+    border-color: #7c3aed;
+}
+
+body.dark-mode .kotak-angka.tanda-tanya {
+    background-color: #7c3aed;
+    color: #ffffff;
+}
+
+body.dark-mode .arena-tangkap-box {
+    background-color: #0f172a;
+    border-color: #7c3aed;
+}
+/* --- STATUS API STREAK (PADAM VS MENYALA) --- */
+.streak-padam {
+    opacity: 0.55;
+    filter: grayscale(100%);
+    background-color: var(--bg-main);
+    border: 1px dashed var(--border-color);
+    padding: 5px 12px;
+    border-radius: 20px;
+    transition: all 0.3s ease;
+}
+
+.streak-menyala {
+    opacity: 1;
+    filter: none;
+    background-color: #fff7ed;
+    color: #ea580c;
+    border: 1px solid #fdba74;
+    padding: 5px 12px;
+    border-radius: 20px;
+    font-weight: bold;
+    box-shadow: 0 2px 10px rgba(249, 115, 22, 0.2);
+    transition: all 0.3s ease;
+}
+
+body.dark-mode .streak-menyala {
+    background-color: #431407;
+    color: #fdba74;
+    border-color: #9a3412;
+}

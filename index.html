@@ -1,0 +1,475 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Skill Bridge</title>
+    <link rel="stylesheet" href="style.css">
+    <!-- Pengaturan agar Web bisa di-install di HP (PWA) -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#8b5cf6">
+    <link rel="icon" href="https://cdn-icons-png.flaticon.com/512/1828/1828884.png" type="image/png">
+</head>
+<body>
+  <!-- LAYAR LOGIN / PILIH AKUN -->
+    <div id="layar-login" class="login-overlay" style="display: none;">
+        <div class="login-box">
+            <h2 style="color: var(--primary-color); margin-bottom: 5px;">✦ SkillBridge</h2>
+            <p style="font-size: 13px; color: var(--text-secondary); margin-bottom: 20px;">
+                Masuk dengan nama penggunamu agar XP, streak, dan progres belajarmu tersimpan aman.
+            </p>
+            <div class="form-grup">
+                <input type="text" id="input-login-username" placeholder="Masukkan Username (contoh: erifa17)" required>
+                <input type="password" id="input-login-pin" placeholder="Buat / Masukkan PIN 4 Angka" maxlength="4" required>
+                <button onclick="prosesLogin()" style="width: 100%; padding: 12px;">Masuk & Mulai Belajar 🚀</button>
+            </div>
+            <p id="pesan-error-login" style="color: #ef4444; font-size: 12px; margin-top: 10px; display: none;"></p>
+        </div>
+    </div>
+
+    <!-- Sidebar / Navigasi -->
+    <nav class="sidebar">
+        <div class="logo">
+            <h2>✦ SkillBridge</h2>
+        </div>
+        <p class="menu-label">MENU UTAMA</p>
+        <ul id="menu-list">
+            <li onclick="pindahHalaman('beranda')" class="menu-item aktif" id="menu-beranda">🏠 Beranda</li>
+            <li onclick="bukaRuangBelajar('semua')" class="menu-item" id="menu-ruang-belajar">📚 Ruang Belajar</li>
+            <li onclick="bukaLobiKuis()" class="menu-item" id="menu-lobi-kuis">🎯 Latihan & Kuis</li>
+            <li onclick="pindahHalaman('studio')" class="menu-item" id="menu-studio">🎨 Studio Proyek</li>
+            <li onclick="bukaHalamanProgres()" class="menu-item" id="menu-progres">📊 Progres Saya</li>
+            <li onclick="bukaHalamanGame()" class="menu-item" id="menu-game">🎮 Mini Game</li>
+            <li onclick="pindahHalaman('pengaturan')" class="menu-item" id="menu-pengaturan">⚙️ Pengaturan</li>
+        </ul>
+    </nav>
+
+    <!-- Konten Utama -->
+    <main class="main-content">
+        
+        <!-- HALAMAN: BERANDA -->
+        <section id="halaman-beranda" class="halaman">
+            <header>
+                <h1>Beranda</h1>
+                <p id="sapaan-beranda">Tempat untuk belajar dan berkembang tanpa batas usia.</p>
+            </header>
+            
+            <div class="hero-banner">
+                <div class="hero-text">
+                    <p>SELAMAT DATANG DI SKILLBRIDGE!</p>
+                    <h2>Setiap langkah adalah awal dari sesuatu yang hebat.</h2>
+                    <button onclick="bukaRuangBelajar('semua')">Mulai Belajar</button>
+                </div>
+                <div class="maskot" id="maskot-beranda">🌟</div>
+            </div>
+
+            <!-- TANTANGAN HARIAN & STREAK -->
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 20px; margin-bottom: 10px;">
+                <h3>Tantangan Harian</h3>
+                <span class="badge-streak" id="tampilan-streak">🔥 0 Hari Beruntun</span>
+            </div>
+            <div class="card-tantangan mb-20" id="kartu-tantangan">
+                <div class="tantangan-info">
+                    <h4>Tantangan Wawasan Harian</h4>
+                    <p>Selesaikan 1 sesi kuis hari ini untuk mempertahankan streak apimu dan raih bonus XP!</p>
+                </div>
+                <button id="btn-mulai-harian" onclick="mulaiTantanganHarian()">Mulai Tantangan</button>
+            </div>
+
+            <!-- 3 BIDANG PEMBELAJARAN -->
+            <h3>Jelajahi Bidang Pembelajaran</h3>
+            <div class="cards-container mb-20">
+                <div class="card card-bidang" onclick="bukaRuangBelajar('teknologi')">
+                    <h4>💻 Teknologi</h4>
+                    <p>Pemrograman & Web</p>
+                </div>
+                <div class="card card-bidang" onclick="bukaRuangBelajar('desain')">
+                    <h4>🎨 Desain</h4>
+                    <p>UI/UX & Grafis</p>
+                </div>
+                <div class="card card-bidang" onclick="bukaRuangBelajar('komunikasi')">
+                    <h4>💬 Komunikasi</h4>
+                    <p>Public Speaking & Nulis</p>
+                </div>
+            </div>
+
+            <h3>Progres Belajarmu</h3>
+            <div class="cards-container">
+                <div class="card">
+                    <h4>Poin XP</h4>
+                    <p id="tampilan-xp" class="angka-besar">0 XP</p>
+                </div>
+                <div class="card">
+                    <h4>Koin Saya</h4>
+                    <p id="tampilan-koin" class="angka-besar" style="color: #eab308;">0 🪙</p>
+                </div>
+                <div class="card">
+                    <h4>Status</h4>
+                    <p id="status-level" class="angka-besar">Pemula 🌱</p>
+                </div>
+            </div>
+        </section>
+
+        <!-- HALAMAN: RUANG BELAJAR (SEMUA KURSUS + FILTER) -->
+        <section id="halaman-ruang-belajar" class="halaman" style="display: none;">
+            <header>
+                <h1>Ruang Belajar</h1>
+                <p>Pilih bidang dan tingkatkan keahlianmu hari ini.</p>
+            </header>
+
+            <!-- Tombol Filter Kategori & Level -->
+            <div class="filter-container mb-20">
+                <button class="btn-filter aktif" id="filter-semua" onclick="bukaRuangBelajar('semua')">Semua Materi</button>
+                <button class="btn-filter" id="filter-teknologi" onclick="bukaRuangBelajar('teknologi')">💻 Teknologi</button>
+                <button class="btn-filter" id="filter-desain" onclick="bukaRuangBelajar('desain')">🎨 Desain</button>
+                <button class="btn-filter" id="filter-komunikasi" onclick="bukaRuangBelajar('komunikasi')">💬 Komunikasi</button>
+                <button class="btn-filter" id="filter-menengah" onclick="bukaRuangBelajar('menengah')">🚀 Tingkat Menengah</button>
+            </div>
+
+            <!-- Daftar Kursus Akan Diisi Otomatis oleh JavaScript -->
+            <div id="wadah-daftar-kursus" class="daftar-kursus-container"></div>
+        </section>
+
+        <!-- HALAMAN: DETAIL KURSUS -->
+        <section id="halaman-detail-kursus" class="halaman" style="display: none;">
+            <button class="btn-kembali" onclick="bukaRuangBelajar('semua')">← Kembali ke daftar kursus</button>
+            <div class="banner-kategori">
+                <span class="badge" id="badge-kategori-detail">Kategori</span>
+                <h2 id="judul-detail-kursus" class="mt-10">Judul Kursus</h2>
+                <p id="deskripsi-detail-kursus">Deskripsi kursus.</p>
+            </div>
+
+            <div class="content-box mt-20">
+                <h3>Tujuan Pembelajaran</h3>
+                <ul id="tujuan-detail-kursus" style="margin-left: 20px; margin-top: 10px; line-height: 1.8;"></ul>
+            </div>
+
+            <div class="content-box mt-20">
+                <h3>Modul yang Dipelajari</h3>
+                <div class="modul-box">
+                    <strong>Modul 1 (Pemula)</strong><br>
+                    <span id="materi-detail-kursus">Materi pembelajaran</span>
+                </div>
+                <div class="tombol-aksi mt-20" style="display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button onclick="mulaiMateri()">Mulai Belajar →</button>
+                    <button class="btn-outline" onclick="mulaiKuis(kursusAktif)">Mulai Latihan Kuis 🎯</button>
+                </div>
+            </div>
+        </section>
+
+        <!-- HALAMAN: MATERI BELAJAR -->
+        <section id="halaman-materi-belajar" class="halaman" style="display: none;">
+            <button class="btn-kembali" onclick="pindahHalaman('detail-kursus')">← Kembali ke detail kursus</button>
+            
+            <div class="progress-container">
+                <div class="progress-teks">
+                    <span>Progres Pembelajaran</span>
+                    <span id="teks-progres-materi">0%</span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="bar-progres-materi" style="width: 0%;"></div>
+                </div>
+            </div>
+
+            <div class="content-box mt-20">
+                <h2 id="materi-judul-utama">Judul Materi</h2>
+                <h3 class="mt-20" id="materi-subjudul">Subjudul</h3>
+                <p id="materi-teks" style="line-height: 1.7; margin-top: 10px;">Penjelasan materi...</p>
+                
+                <h3 class="mt-20" id="label-contoh-praktik">Contoh Penerapan / Kode:</h3>
+                <div class="kode-box mt-10">
+                    <code id="materi-kode" style="white-space: pre-line;">Contoh...</code>
+                </div>
+            </div>
+
+            <div class="navigasi-materi mt-20">
+                <button class="btn-disabled">← Sebelumnya</button>
+                <button id="btn-selesai-materi" onclick="tandaiSelesai()" class="btn-outline">Tandai Selesai ✓</button>
+                <button class="btn-kuis" onclick="mulaiKuis(kursusAktif)">Lanjut Kuis 🎯</button>
+            </div>
+        </section>
+
+        <!-- HALAMAN: LOBI LATIHAN & KUIS -->
+        <section id="halaman-lobi-kuis" class="halaman" style="display: none;">
+            <header>
+                <h1>Zona Latihan & Kuis</h1>
+                <p>Pilih topik kuis di bawah ini untuk menguji pemahamanmu!</p>
+            </header>
+
+            <!-- Daftar Pilihan Kuis Diisi Otomatis oleh JS -->
+            <div id="wadah-pilihan-kuis" class="cards-container" style="flex-wrap: wrap;"></div>
+        </section>
+
+        <!-- HALAMAN: KUIS INTERAKTIF -->
+        <section id="halaman-kuis-interaktif" class="halaman" style="display: none;">
+            <button class="btn-kembali" onclick="bukaLobiKuis()">← Batal & Kembali</button>
+            
+            <div class="progress-container mt-20">
+                <div class="progress-teks">
+                    <span id="teks-posisi-soal">Soal 1 dari 3</span>
+                    <span>Skor: <span id="skor-sementara">0</span></span>
+                </div>
+                <div class="progress-bar-bg">
+                    <div class="progress-bar-fill" id="bar-progres-kuis" style="width: 33%;"></div>
+                </div>
+            </div>
+            
+            <div class="content-box">
+                <span class="badge mb-20" id="badge-topik-kuis" style="display:inline-block;">Topik Kuis</span>
+                <h2 id="teks-pertanyaan">Memuat pertanyaan...</h2>
+                <div class="opsi-kuis" id="wadah-opsi-kuis"></div>
+                <div id="feedback-kuis" class="feedback-box" style="display: none;">
+                    <p id="teks-feedback"></p>
+                </div>
+                <button id="btn-lanjut-kuis" style="display: none; margin-top: 15px;" onclick="lanjutSoal()">Soal Berikutnya →</button>
+            </div>
+        </section>
+
+        <!-- HALAMAN: STUDIO PROYEK -->
+        <section id="halaman-studio" class="halaman" style="display: none;">
+            <header>
+                <h1>Studio Proyek</h1>
+                <p>Kumpulkan dan pamerkan hasil karyamu di sini!</p>
+            </header>
+            <div class="content-box">
+                <h3>Tambahkan Proyek Baru</h3>
+                <div class="form-grup">
+                    <input type="text" id="input-nama-proyek" placeholder="Nama Proyek (misal: Desain Poster / Web Portfolio)" required>
+                    <input type="text" id="input-link-proyek" placeholder="Link Proyek (misal: github.com/username)" required>
+                    <button onclick="simpanProyek()">Simpan Karya 🚀</button>
+                </div>
+            </div>
+            <h3 class="mt-20">Daftar Karyamu</h3>
+            <div id="koleksi-proyek" class="cards-container mt-20" style="flex-wrap: wrap;"></div>
+        </section>
+
+        <!-- HALAMAN: PROGRES SAYA & ACHIEVEMENTS -->
+        <section id="halaman-progres" class="halaman" style="display: none;">
+            <!-- Banner Profil & Level -->
+            <div class="banner-profil-progres">
+                <div class="avatar-progres" id="progres-avatar">🌟</div>
+                <div>
+                    <h2 id="progres-nama-pengguna">Pengguna SkillBridge</h2>
+                    <span class="badge-level-progres" id="progres-badge-level">Pemula 🌱 (Level 1)</span>
+                </div>
+            </div>
+
+            <!-- Statistik Belajar -->
+            <h3 class="mt-20">Statistik Belajar</h3>
+            <div class="cards-container mt-10">
+                <div class="card">
+                    <span style="font-size: 24px;">📚</span>
+                    <p id="stat-materi-selesai" class="angka-besar">0 / 11</p>
+                    <p style="font-size: 13px; color: var(--text-secondary);">Materi Selesai</p>
+                </div>
+                <div class="card">
+                    <span style="font-size: 24px;">✅</span>
+                    <p id="stat-kuis-selesai" class="angka-besar">0 / 11</p>
+                    <p style="font-size: 13px; color: var(--text-secondary);">Kuis Diselesaikan</p>
+                </div>
+                <div class="card">
+                    <span style="font-size: 24px;">⭐</span>
+                    <p id="stat-total-xp" class="angka-besar">0 XP</p>
+                    <p style="font-size: 13px; color: var(--text-secondary);">Total Pengalaman</p>
+                </div>
+            </div>
+
+            <!-- Rincian Materi yang Telah Diselesaikan -->
+            <h3 class="mt-20">Riwayat Materi & Kuis Selesai</h3>
+            <div class="content-box mt-10" id="wadah-riwayat-selesai">
+                <p style="color: var(--text-secondary); font-size: 14px;">Belum ada materi yang diselesaikan.</p>
+            </div>
+
+            <!-- Daftar Pencapaian (Achievements) -->
+            <h3 class="mt-20">Pencapaian (Achievements)</h3>
+            <p style="color: var(--text-secondary); font-size: 14px; margin-bottom: 15px;">
+                Selesaikan materi, kuis, dan jaga streak harianmu untuk membuka semua lencana!
+            </p>
+            <div class="grid-achievement" id="wadah-achievement">
+                <!-- Kartu lencana akan diisi otomatis oleh JavaScript -->
+            </div>
+        </section>
+
+        <!-- HALAMAN: MINI GAME (LOBI PEMILIH + ARENA GAME) -->
+        <section id="halaman-game" class="halaman" style="display: none;">
+            <!-- TAMPILAN 1: LOBI PEMILIH MINI GAME -->
+            <div id="lobi-mini-game">
+                <header>
+                    <h1>Zona Mini Game 🎮</h1>
+                    <p>Pilih permainan di bawah ini untuk mengasah logika atau bersantai sejenak!</p>
+                </header>
+
+                <div class="cards-container" style="flex-wrap: wrap;">
+                    <div class="card" style="min-width: 260px;">
+                        <span class="badge">Asah Logika</span>
+                        <h3 class="mt-10">🧩 Labirin Logika (Maze)</h3>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
+                            Temukan jalan keluar menuju piala melewati 6 level labirin yang menantang. (+15 XP/level)
+                        </p>
+                        <button onclick="bukaArenaGame('maze')" style="width: 100%;">Mainkan Labirin →</button>
+                    </div>
+
+                    <div class="card" style="min-width: 260px;">
+                        <span class="badge">Asah Algoritma</span>
+                        <h3 class="mt-10">🔢 Tebak Pola Angka</h3>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
+                            Pecahkan 12 teka-teki deret matematika dan pola logika. (+10 XP/soal)
+                        </p>
+                        <button onclick="bukaArenaGame('pola')" style="width: 100%;">Mainkan Pola Angka →</button>
+                    </div>
+
+                    <div class="card" style="min-width: 260px;">
+                        <span class="badge" style="background-color: #fef08a; color: #854d0e;">Mode Santai</span>
+                        <h3 class="mt-10">⚡ Tangkap Bintang</h3>
+                        <p style="font-size: 13px; color: var(--text-secondary); margin: 10px 0;">
+                            Uji kecepatan tanganmu menangkap maskot bintang dalam 15 detik!
+                        </p>
+                        <button onclick="bukaArenaGame('tangkap')" style="width: 100%;">Mainkan Tangkap Bintang →</button>
+                    </div>
+                </div>
+            </div>
+
+            <!-- TAMPILAN 2: ARENA BERMAIN (MUNCUL SETELAH DIPILIH) -->
+            <div id="arena-mini-game" style="display: none;">
+                <button class="btn-kembali" onclick="kembaliKeLobiGame()">← Kembali ke pilihan game</button>
+
+                <!-- GAME 1: LABIRIN LOGIKA -->
+                <div id="wadah-game-maze" class="content-box" style="display: none; text-align: center;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px; flex-wrap: wrap; gap: 10px;">
+                        <span class="badge" id="label-level-maze">Level 1 dari 6</span>
+                        <span style="font-size: 13px; color: var(--text-secondary);">Langkah: <strong id="jumlah-langkah-maze">0</strong></span>
+                        <button class="btn-outline" style="padding: 6px 12px; font-size: 12px;" onclick="resetMaze()">Ulangi Level 🔄</button>
+                    </div>
+                    <div id="papan-maze" class="grid-maze"></div>
+                    <div class="kontrol-maze mt-20">
+                        <div><button class="btn-arah" onclick="gerakMaze(0, -1)">⬆️</button></div>
+                        <div style="display: flex; justify-content: center; gap: 10px; margin-top: 8px;">
+                            <button class="btn-arah" onclick="gerakMaze(-1, 0)">⬅️</button>
+                            <button class="btn-arah" onclick="gerakMaze(0, 1)">⬇️</button>
+                            <button class="btn-arah" onclick="gerakMaze(1, 0)">➡️</button>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- GAME 2: TEBAK POLA ANGKA -->
+                <div id="wadah-game-pola" class="content-box" style="display: none; text-align: center;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;">
+                        <span class="badge" id="label-soal-pola">Soal 1 dari 12</span>
+                        <span style="font-size: 12px; color: var(--text-secondary);">Tekan Enter untuk menjawab</span>
+                    </div>
+                    <h3 class="mt-10">Lanjutkan Deret Angka Berikut!</h3>
+                    <div id="deret-angka-box" class="deret-container mt-20 mb-20"></div>
+                    <div style="max-width: 300px; margin: 0 auto; display: flex; gap: 10px;">
+                        <input type="number" id="input-jawaban-pola" placeholder="Angka..." style="flex: 1; padding: 12px; border-radius: 8px; border: 1px solid var(--border-color); background: var(--bg-main); color: var(--text-primary); font-size: 16px; text-align: center;">
+                        <button onclick="cekJawabanPola()">Jawab ✓</button>
+                    </div>
+                    <p id="petunjuk-pola" style="font-size: 12px; color: var(--primary-color); margin-top: 15px; font-weight: bold;"></p>
+                </div>
+
+                <!-- GAME 3: TANGKAP BINTANG -->
+                <div id="wadah-game-tangkap" class="content-box" style="display: none; text-align: center;">
+                    <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 15px;">
+                        <span class="badge" style="background-color: #fef08a; color: #854d0e;">Mode Santai</span>
+                        <span>Waktu: <strong id="waktu-tangkap" style="color: #ef4444;">15</strong> detik</span>
+                        <span>Tertangkap: <strong id="skor-tangkap" style="color: var(--primary-color);">0</strong></span>
+                    </div>
+                    <div id="arena-tangkap" class="arena-tangkap-box">
+                        <div id="target-tangkap" class="target-bintang" onclick="klikTargetTangkap()" style="display: none;">🌟</div>
+                        <div id="overlay-mulai-tangkap" class="overlay-arena">
+                            <button onclick="mulaiGameTangkap()">Mulai Main 🎮</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- HALAMAN: PENGATURAN (PROFIL, MASKOT, TEMA, & INSTALL APP) -->
+        <section id="halaman-pengaturan" class="halaman" style="display: none;">
+            <header>
+                <h1>Pengaturan Pengguna</h1>
+                <p>Kustomisasi karakter, tema, dan instalasi aplikasi.</p>
+            </header>
+
+            <!-- Kartu Akun Aktif & Backup Data -->
+            <div class="content-box mb-20">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3>Akun Aktif: <span id="label-akun-aktif" style="color: var(--primary-color);">-</span></h3>
+                        <p style="font-size: 13px; color: var(--text-secondary);">Simpan kode cadangan agar progres tidak hilang saat pindah perangkat.</p>
+                    </div>
+                    <button onclick="logoutAkun()" style="background-color: #ef4444;">Keluar Akun (Logout) 🚪</button>
+                </div>
+
+                <div style="margin-top: 15px; padding-top: 15px; border-top: 1px solid var(--border-color); display: flex; gap: 10px; flex-wrap: wrap;">
+                    <button class="btn-outline" onclick="salinKodeBackup()">📋 Salin Kode Cadangan Progres</button>
+                    <button class="btn-outline" onclick="bukaModalPulihkan()">📥 Pulihkan dari Kode</button>
+                </div>
+            </div>
+
+            <!-- Custom Karakter Maskot & Toko Koin -->
+            <div class="content-box mb-20">
+                <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                    <div>
+                        <h3>Toko & Custom Karakter Maskot</h3>
+                        <p style="font-size: 13px; color: var(--text-secondary);">Selesaikan materi dan kuis untuk mengumpulkan koin, lalu buka karakter baru!</p>
+                    </div>
+                    <span class="badge-koin" id="tampilan-koin-toko">🪙 0 Koin</span>
+                </div>
+                
+                <div class="grid-maskot mt-20" id="wadah-pilihan-maskot">
+                    <!-- Diisi otomatis oleh JavaScript -->
+                </div>
+            </div>
+
+            <!-- Pengaturan Profil -->
+            <div class="content-box mb-20">
+                <h3>Pengaturan Profil</h3>
+                <p>Ubah nama panggilanmu di sini.</p>
+                <div class="form-grup">
+                    <input type="text" id="input-nama-profil" placeholder="Nama Panggilan Kamu">
+                    <button onclick="simpanProfil()">Simpan Profil 💾</button>
+                </div>
+                <p id="sapaan-profil" class="mt-10" style="color: var(--primary-color); font-weight: bold;"></p>
+            </div>
+
+            <!-- Install ke HP (PWA) -->
+            <div class="content-box mb-20" id="kotak-install-app">
+                <h3>Install Aplikasi ke HP / Desktop 📱</h3>
+                <p>Pasang Skill Bridge langsung di layar utama perangkatmu agar bisa dibuka seperti aplikasi sungguhan tanpa browser!</p>
+                <button id="btn-install-pwa" class="mt-10" onclick="installAplikasi()" style="background-color: #10b981;">Install Skill Bridge 📲</button>
+                <p id="info-install-manual" style="font-size: 12px; color: var(--text-secondary); margin-top: 8px;">
+                    *Jika tombol tidak merespons, klik ikon titik tiga (⋮) di pojok kanan atas Chrome HP-mu, lalu pilih <strong>"Tambahkan ke Layar Utama"</strong> atau <strong>"Install App"</strong>.
+                </p>
+            </div>
+
+            <!-- Tampilan Mode Gelap & Efek Suara -->
+            <div class="content-box">
+                <h3>Tampilan & Efek Suara</h3>
+                <p>Sesuaikan tema visual dan efek suara interaksi aplikasi.</p>
+                <div style="display: flex; gap: 10px; flex-wrap: wrap; margin-top: 10px;">
+                    <button id="tombol-tema" onclick="toggleTema()">Beralih ke Mode Gelap 🌙</button>
+                    <button id="tombol-suara" class="btn-outline" onclick="toggleSuara()">Efek Suara: Aktif 🔊</button>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Modal Konfirmasi Custom (Pengganti confirm() browser) -->
+    <div id="modal-konfirmasi" class="modal-overlay" style="display: none;">
+        <div class="modal-box">
+            <h3 id="judul-modal">Hapus Proyek?</h3>
+            <p id="pesan-modal" style="color: var(--text-secondary); margin: 10px 0 20px 0;">
+                Apakah kamu yakin ingin menghapus karya ini? Tindakan ini tidak bisa dibatalkan.
+            </p>
+            <div style="display: flex; justify-content: flex-end; gap: 10px;">
+                <button class="btn-outline" onclick="tutupModalKonfirmasi()">Batal</button>
+                <button id="btn-konfirmasi-ya" style="background-color: #ef4444;">Ya, Hapus 🗑️</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="wadah-notifikasi"></div>
+    <script src="script.js"></script>
+</body>
+</html>
