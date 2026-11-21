@@ -1,4 +1,4 @@
-const CACHE_NAME = 'skillbridge-v2';
+const CACHE_NAME = 'skillbridge-v4';
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
@@ -16,8 +16,4 @@ self.addEventListener('activate', (event) => {
             );
         })
     );
-});
-
-self.addEventListener('fetch', function(event) {
-    // Memungkinkan browser mengenali web ini sebagai PWA yang valid
 });
