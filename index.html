@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Skill Bridge</title>
-    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="style.css?v=3">
     <!-- Pengaturan agar Web bisa di-install di HP (PWA) -->
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#8b5cf6">
@@ -57,10 +57,13 @@
                 <p id="sapaan-beranda">Tempat untuk belajar dan berkembang tanpa batas usia.</p>
             </header>
             
-            <div class="hero-text">
-                <p>SELAMAT DATANG DI SKILLBRIDGE!</p>
-                <h2 id="judul-banner-beranda">Setiap langkah adalah awal dari sesuatu yang hebat.</h2>
-                <button onclick="bukaRuangBelajar('semua')">Mulai Belajar</button>
+            <div class="hero-banner">
+                <div class="hero-text">
+                    <p>SELAMAT DATANG DI SKILLBRIDGE!</p>
+                    <h2 id="judul-banner-beranda">Setiap langkah adalah awal dari sesuatu yang hebat.</h2>
+                    <button onclick="bukaRuangBelajar('semua')">Mulai Belajar</button>
+                </div>
+                <div class="maskot" id="maskot-beranda">🌟</div>
             </div>
 
             <!-- TANTANGAN HARIAN & STREAK -->
@@ -193,6 +196,14 @@
                 <h1>Zona Latihan & Kuis</h1>
                 <p>Pilih topik kuis di bawah ini untuk menguji pemahamanmu!</p>
             </header>
+
+            <!-- Tombol Filter Kategori Kuis -->
+            <div class="filter-container mb-20">
+                <button class="btn-filter-kuis btn-filter aktif" id="filter-kuis-semua" onclick="bukaLobiKuis('semua')">Semua Kuis</button>
+                <button class="btn-filter-kuis btn-filter" id="filter-kuis-teknologi" onclick="bukaLobiKuis('teknologi')">💻 Teknologi</button>
+                <button class="btn-filter-kuis btn-filter" id="filter-kuis-desain" onclick="bukaLobiKuis('desain')">🎨 Desain</button>
+                <button class="btn-filter-kuis btn-filter" id="filter-kuis-komunikasi" onclick="bukaLobiKuis('komunikasi')">💬 Komunikasi</button>
+            </div>
 
             <!-- Daftar Pilihan Kuis Diisi Otomatis oleh JS -->
             <div id="wadah-pilihan-kuis" class="cards-container" style="flex-wrap: wrap;"></div>
