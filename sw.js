@@ -1,4 +1,4 @@
-const CACHE_NAME = 'skillbridge-v3';
+const CACHE_NAME = 'skillbridge-v2';
 
 self.addEventListener('install', (event) => {
     self.skipWaiting();
