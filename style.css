@@ -1183,78 +1183,8 @@ body.dark-mode .streak-menyala {
     cursor: pointer;
 }
 
-/* Rapikan daftar Tujuan Pembelajaran agar tidak berjarak lebar */
-#tujuan-detail-kursus {
-    padding-left: 18px !important;
-    margin: 8px 0 14px 0 !important;
-}
-
-#tujuan-detail-kursus li {
-    margin-bottom: 6px !important;
-    line-height: 1.45 !important;
-    font-size: 13.5px;
-    text-align: left;
-}
-
-@media (max-width: 768px) {
-    /* Tampilkan tombol Menu di layar HP & sembunyikan daftar menu secara default */
-    #btn-toggle-menu-hp {
-        display: inline-block;
-    }
-
-    #wadah-menu-utama {
-        display: none;
-        margin-top: 12px;
-        padding-top: 10px;
-        border-top: 1px solid var(--border-color);
-    }
-
-    #wadah-menu-utama.terbuka {
-        display: block;
-    }
-
-    /* Ubah susunan layout utama dari samping ke atas-bawah di HP */
-    .container, .app-container {
-        flex-direction: column !important;
-    }
-
-    .sidebar {
-        width: 100% !important;
-        height: auto !important;
-        position: sticky;
-        top: 0;
-        z-index: 100;
-        border-right: none !important;
-        border-bottom: 1px solid var(--border-color);
-    }
-
-    /* Perapian halaman Detail Kursus & Tujuan Pembelajaran di HP */
-    #halaman-detail-kursus .content-box,
-    #halaman-materi-belajar .content-box {
-        padding: 14px !important;
-    }
-
-    #tujuan-detail-kursus {
-        padding-left: 16px !important;
-        margin: 6px 0 12px 0 !important;
-    }
-
-    #tujuan-detail-kursus li {
-        font-size: 13px !important;
-        margin-bottom: 5px !important;
-        line-height: 1.4 !important;
-    }
-
-    pre, code, #materi-kode {
-        white-space: pre-wrap !important;
-        word-break: break-word !important;
-        font-size: 12px !important;
-    }
-}
-/* --- PAKSA PERBAIKAN TUJUAN PEMBELAJARAN & MENU HP --- */
 #tujuan-detail-kursus {
     display: block !important;
-    flex-direction: column !important;
     list-style-type: disc !important;
     padding-left: 20px !important;
     margin: 10px 0 15px 0 !important;
@@ -1269,13 +1199,67 @@ body.dark-mode .streak-menyala {
     text-align: left !important;
 }
 
+/* --- HERO BANNER & MASKOT (DESKTOP + HP) --- */
+.hero-banner {
+    background: linear-gradient(135deg, #ede9fe 0%, #ddd6fe 100%) !important;
+    border: 1px solid #c4b5fd !important;
+    border-radius: 16px !important;
+    padding: 28px 32px !important;
+    display: flex !important;
+    justify-content: space-between !important;
+    align-items: center !important;
+    gap: 20px !important;
+    margin-bottom: 20px !important;
+}
+
+.hero-text p {
+    font-size: 12px !important;
+    font-weight: 700 !important;
+    letter-spacing: 1px !important;
+    color: #7c3aed !important;
+    margin-bottom: 6px !important;
+}
+
+.hero-text h2 {
+    font-size: 24px !important;
+    line-height: 1.3 !important;
+    color: #1e293b !important;
+    margin-bottom: 16px !important;
+}
+
+.hero-banner .maskot,
+#maskot-beranda {
+    display: flex !important;
+    align-items: center !important;
+    justify-content: center !important;
+    font-size: 72px !important;
+    line-height: 1 !important;
+    flex-shrink: 0 !important;
+}
+
+body.dark-mode .hero-banner {
+    background: linear-gradient(135deg, #1e1b4b 0%, #312e81 100%) !important;
+    border-color: #4338ca !important;
+}
+
+body.dark-mode .hero-text p {
+    color: #a5b4fc !important;
+}
+
+body.dark-mode .hero-text h2 {
+    color: #f8fafc !important;
+}
+
+/* --- RESPONSIVE KHUSUS LAYAR HP --- */
 @media (max-width: 768px) {
-    /* Sembunyikan menu utama di HP secara default */
+    #btn-toggle-menu-hp {
+        display: inline-block !important;
+    }
+
     #wadah-menu-utama {
         display: none !important;
     }
 
-    /* Tampilkan menu utama saat tombol ☰ Menu diklik */
     #wadah-menu-utama.terbuka {
         display: block !important;
         width: 100% !important;
@@ -1284,7 +1268,6 @@ body.dark-mode .streak-menyala {
         border-top: 1px solid var(--border-color) !important;
     }
 
-    /* Susun daftar menu vertikal ke bawah saat dibuka di HP */
     #wadah-menu-utama.terbuka #menu-list {
         display: flex !important;
         flex-direction: column !important;
@@ -1299,60 +1282,37 @@ body.dark-mode .streak-menyala {
         font-size: 13.5px !important;
     }
 
-    #btn-toggle-menu-hp {
-        display: inline-block !important;
-    }
-}
-/* --- PERKECIL BANNER BERANDA DI HP --- */
-@media (max-width: 768px) {
-    #halaman-beranda .content-box h2,
-    #halaman-beranda .banner-box h2,
-    #halaman-beranda section h2 {
-        font-size: 18px !important;
-        line-height: 1.35 !important;
-        margin: 8px 0 12px 0 !important;
-    }
-
-    #halaman-beranda .content-box p,
-    #halaman-beranda .banner-box p {
-        font-size: 11px !important;
-        letter-spacing: 0.5px !important;
-    }
-}
-@media (max-width: 768px) {
-    #judul-banner-beranda {
-        font-size: 17px !important;
-        line-height: 1.35 !important;
-        margin: 8px 0 12px 0 !important;
-    }
-
-    /* Perkecil juga ikon bintang/ilustrasi di dalam kartu selamat datang */
-    #halaman-beranda svg,
-    #halaman-beranda img {
-        max-width: 75px !important;
+    .sidebar {
+        width: 100% !important;
         height: auto !important;
+        position: sticky;
+        top: 0;
+        z-index: 100;
+        border-right: none !important;
+        border-bottom: 1px solid var(--border-color);
     }
-}
-@media (max-width: 768px) {
+
     .hero-banner {
-        padding: 18px 14px !important;
         flex-direction: column !important;
         text-align: center !important;
+        padding: 18px 16px !important;
         gap: 12px !important;
     }
 
-    .hero-text h2,
-    #judul-banner-beranda {
+    .hero-text h2 {
         font-size: 17px !important;
         line-height: 1.35 !important;
-        margin: 6px 0 12px 0 !important;
+        margin-bottom: 12px !important;
     }
 
-    .hero-text p {
-        font-size: 11px !important;
+    .hero-banner .maskot,
+    #maskot-beranda {
+        font-size: 52px !important;
     }
 
-    .hero-banner .maskot {
-        font-size: 48px !important;
+    pre, code, #materi-kode {
+        white-space: pre-wrap !important;
+        word-break: break-word !important;
+        font-size: 12px !important;
     }
 }
