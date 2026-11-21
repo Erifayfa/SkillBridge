@@ -1303,3 +1303,19 @@ body.dark-mode .streak-menyala {
         display: inline-block !important;
     }
 }
+/* --- PERKECIL BANNER BERANDA DI HP --- */
+@media (max-width: 768px) {
+    #halaman-beranda .content-box h2,
+    #halaman-beranda .banner-box h2,
+    #halaman-beranda section h2 {
+        font-size: 18px !important;
+        line-height: 1.35 !important;
+        margin: 8px 0 12px 0 !important;
+    }
+
+    #halaman-beranda .content-box p,
+    #halaman-beranda .banner-box p {
+        font-size: 11px !important;
+        letter-spacing: 0.5px !important;
+    }
+}
