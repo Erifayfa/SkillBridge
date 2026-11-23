@@ -1763,3 +1763,44 @@ body.dark-mode .status-cek.oke {
         flex-shrink: 0 !important;
     }
 }
+/* --- PERBAIKAN PROPORSIONAL MODAL PRATINJAU & EDITOR DI HP --- */
+@media (max-width: 768px) {
+    /* 1. Tombol Tutup di Modal Pratinjau Karya agar kompak & tidak melebar */
+    #modal-lihat-karya .modal-box {
+        padding: 14px !important;
+        max-height: 85vh !important;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #modal-lihat-karya .btn-tutup-modal {
+        width: auto !important;
+        max-width: max-content !important;
+        padding: 5px 12px !important;
+        font-size: 12px !important;
+        white-space: nowrap !important;
+        flex-shrink: 0 !important;
+    }
+
+    #modal-lihat-karya #judul-modal-karya {
+        font-size: 15px !important;
+        line-height: 1.3 !important;
+    }
+
+    /* 2. Tinggi Modal Preview & Live Preview Editor lebih ringkas untuk layar HP */
+    #iframe-modal-karya {
+        height: 240px !important;
+    }
+
+    #iframe-preview-proyek {
+        height: 175px !important;
+    }
+
+    /* 3. Tombol kecil (Salin Kode, Bersihkan, Layar Penuh) agar rapi sejajar 1 baris */
+    #wadah-studio-buat .btn-outline {
+        width: auto !important;
+        padding: 4px 8px !important;
+        font-size: 11px !important;
+        white-space: nowrap !important;
+    }
+}
