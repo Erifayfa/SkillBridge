@@ -1316,3 +1316,450 @@ body.dark-mode .hero-text h2 {
         font-size: 12px !important;
     }
 }
+/* --- PERBAIKAN MENU HP MENGAMBANG (OVERLAY DROPDOWN) --- */
+@media (max-width: 768px) {
+    .sidebar {
+        position: sticky !important;
+        top: 0;
+        z-index: 1000 !important;
+        overflow: visible !important;
+    }
+
+    #wadah-menu-utama {
+        display: none !important;
+    }
+
+    #wadah-menu-utama.terbuka {
+        display: block !important;
+        position: absolute !important;
+        top: 100% !important;
+        left: 0 !important;
+        right: 0 !important;
+        width: 100% !important;
+        background-color: var(--bg-sidebar) !important;
+        border-bottom: 2px solid var(--primary-color) !important;
+        box-shadow: 0 15px 30px rgba(0, 0, 0, 0.18) !important;
+        padding: 12px 16px 18px 16px !important;
+        margin-top: 0 !important;
+        max-height: 75vh !important;
+        overflow-y: auto !important;
+        z-index: 1001 !important;
+        animation: turunMenu 0.2s ease-out;
+    }
+}
+
+@keyframes turunMenu {
+    from { opacity: 0; transform: translateY(-8px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+/* --- EDITOR KODE DENGAN NOMOR BARIS (LINE NUMBERS) --- */
+.wadah-editor-kode {
+    display: flex;
+    width: 100%;
+    height: 260px;
+    margin-top: 6px;
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    overflow: hidden;
+    background-color: #1e293b;
+}
+
+.nomor-baris-kode {
+    width: 42px;
+    padding: 12px 6px;
+    background-color: #0f172a;
+    color: #64748b;
+    font-family: 'Courier New', Courier, monospace;
+    font-size: 13px;
+    line-height: 1.5;
+    text-align: right;
+    user-select: none;
+    overflow: hidden;
+    border-right: 1px solid #334155;
+    flex-shrink: 0;
+}
+
+#editor-kode-proyek {
+    flex: 1;
+    height: 100%;
+    padding: 12px;
+    border: none !important;
+    border-radius: 0 !important;
+    margin-top: 0 !important;
+    background-color: #1e293b !important;
+    color: #f8fafc !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 13px !important;
+    line-height: 1.5 !important;
+    resize: none !important;
+    outline: none !important;
+    white-space: pre;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+.info-bawah-editor {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    background-color: #0f172a;
+    color: #94a3b8;
+    font-size: 11px;
+    padding: 5px 12px;
+    border-radius: 0 0 8px 8px;
+    margin-top: -4px;
+}
+/* --- PENYEMPURNAAN INTERAKTIF HP & DESKTOP --- */
+body.dark-mode select {
+    background-color: #0f172a !important;
+    color: #f8fafc !important;
+    border-color: #475569 !important;
+}
+
+@media (max-width: 768px) {
+    body {
+        height: auto !important;
+        min-height: 100vh !important;
+    }
+
+    /* Pastikan kolom editor & live preview tersusun rapi 100% lebar di HP */
+    #wadah-studio-buat > div > div {
+        min-width: 100% !important;
+    }
+
+    .wadah-editor-kode {
+        height: 220px !important;
+    }
+
+    #iframe-preview-proyek {
+        height: 230px !important;
+    }
+
+    /* Pastikan tombol di dalam modal & layar simulasi mudah ditekan jari */
+    .modal-box button,
+    #tombol-opsi button,
+    #opsi-tes-minat button {
+        width: 100% !important;
+        padding: 12px 14px !important;
+        font-size: 13.5px !important;
+        line-height: 1.4 !important;
+    }
+
+    #bar-aksi-simulasi button {
+        width: 100% !important;
+        text-align: left !important;
+    }
+}
+/* --- NOTIFIKASI INTERAKTIF YANG BISA DITEKAN --- */
+#wadah-notifikasi {
+    pointer-events: none;
+}
+
+.notifikasi {
+    pointer-events: auto !important;
+    cursor: pointer !important;
+    display: flex !important;
+    align-items: center !important;
+    justify-content: space-between !important;
+    gap: 12px !important;
+    user-select: none;
+    transition: transform 0.18s ease, opacity 0.25s ease !important;
+}
+
+.notifikasi:hover {
+    transform: translateY(-2px);
+    filter: brightness(1.05);
+}
+
+.notifikasi:active {
+    transform: scale(0.97);
+}
+
+.tutup-notif {
+    background: rgba(255, 255, 255, 0.22);
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 11px;
+    flex-shrink: 0;
+}
+
+/* --- AUTOCOMPLETE BAR DI BAWAH EDITOR KODE --- */
+.kotak-saran-kode {
+    display: flex;
+    gap: 6px;
+    flex-wrap: wrap;
+    padding: 8px;
+    margin-top: 6px;
+    background-color: #0f172a;
+    border: 1px solid #334155;
+    border-radius: 8px;
+}
+
+.item-saran-kode {
+    background-color: #1e293b !important;
+    color: #c4b5fd !important;
+    border: 1px solid #475569 !important;
+    padding: 5px 10px !important;
+    font-family: 'Courier New', Courier, monospace !important;
+    font-size: 12px !important;
+    border-radius: 6px !important;
+    cursor: pointer !important;
+}
+
+.item-saran-kode:hover,
+.item-saran-kode.aktif {
+    background-color: #7c3aed !important;
+    color: #ffffff !important;
+    border-color: #8b5cf6 !important;
+}
+/* --- PEMILIH BIDANG INTERAKTIF DI STUDIO PROYEK --- */
+.pemilih-bidang-studio {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+}
+
+.kartu-pilih-bidang {
+    display: flex !important;
+    align-items: center !important;
+    gap: 10px !important;
+    text-align: left !important;
+    background-color: var(--bg-main) !important;
+    color: var(--text-primary) !important;
+    border: 2px solid var(--border-color) !important;
+    padding: 12px !important;
+    border-radius: 10px !important;
+    cursor: pointer !important;
+    transition: all 0.2s ease !important;
+}
+
+.kartu-pilih-bidang:hover {
+    border-color: var(--primary-color) !important;
+    transform: translateY(-2px);
+}
+
+.kartu-pilih-bidang.aktif {
+    background-color: #f3e8ff !important;
+    border-color: var(--primary-color) !important;
+    box-shadow: 0 4px 12px rgba(139, 92, 246, 0.15);
+}
+
+body.dark-mode .kartu-pilih-bidang.aktif {
+    background-color: #2e1065 !important;
+    border-color: #a78bfa !important;
+}
+
+.kartu-pilih-bidang .ikon-bidang {
+    font-size: 24px;
+    flex-shrink: 0;
+}
+
+.kartu-pilih-bidang strong {
+    display: block;
+    font-size: 13px;
+}
+
+.kartu-pilih-bidang small {
+    display: block;
+    font-size: 11px;
+    font-weight: normal;
+    color: var(--text-secondary);
+    margin-top: 2px;
+}
+
+@media (max-width: 768px) {
+    .pemilih-bidang-studio {
+        grid-template-columns: 1fr !important;
+    }
+}
+
+/* --- PETA KARIER MENDALAM (TIMELINE ROADMAP) --- */
+.kartu-info-profesi {
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-left: 5px solid var(--primary-color);
+    border-radius: 12px;
+    padding: 18px;
+}
+
+.chip-tool-karier {
+    background-color: #ede9fe;
+    color: #5b21b6;
+    padding: 4px 10px;
+    border-radius: 14px;
+    font-size: 11.5px;
+    font-weight: bold;
+}
+
+body.dark-mode .chip-tool-karier {
+    background-color: #312e81;
+    color: #c7d2fe;
+}
+
+.timeline-roadmap {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+    padding-left: 14px;
+}
+
+.timeline-roadmap::before {
+    content: "";
+    position: absolute;
+    left: 27px;
+    top: 10px;
+    bottom: 10px;
+    width: 2px;
+    background-color: var(--border-color);
+}
+
+.item-roadmap {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 14px;
+}
+
+.titik-roadmap {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background-color: var(--bg-card);
+    border: 2px solid var(--primary-color);
+    color: var(--primary-color);
+    font-size: 12px;
+    font-weight: bold;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+    z-index: 1;
+    margin-top: 12px;
+}
+
+.item-roadmap.tuntas .titik-roadmap {
+    background-color: #10b981;
+    border-color: #10b981;
+    color: white;
+}
+
+.konten-roadmap {
+    flex: 1;
+    background-color: var(--bg-main);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 15px;
+}
+
+.item-roadmap.tuntas .konten-roadmap {
+    border-color: #10b981;
+}
+
+.status-cek {
+    padding: 4px 8px;
+    border-radius: 6px;
+    background-color: var(--bg-card);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.status-cek.oke {
+    border-color: #10b981;
+    color: #059669;
+    font-weight: bold;
+}
+
+body.dark-mode .status-cek.oke {
+    color: #34d399;
+}
+/* --- PERBAIKAN TOMBOL TUTUP MODAL PRATINJAU --- */
+.btn-tutup-modal {
+    width: auto !important;
+    min-width: fit-content !important;
+    padding: 6px 14px !important;
+    font-size: 13px !important;
+    flex-shrink: 0 !important;
+    position: relative;
+    z-index: 10;
+}
+
+/* --- TAMPILAN BERANDA HP RAMPING & PROPORSIONAL --- */
+@media (max-width: 768px) {
+    #halaman-beranda header {
+        margin-bottom: 14px !important;
+    }
+
+    #halaman-beranda header h1 {
+        font-size: 20px !important;
+        margin-bottom: 2px !important;
+    }
+
+    #halaman-beranda header p {
+        font-size: 12px !important;
+        margin-bottom: 12px !important;
+    }
+
+    #halaman-beranda .hero-banner {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        text-align: left !important;
+        padding: 16px 18px !important;
+        border-radius: 14px !important;
+        gap: 12px !important;
+        margin-bottom: 16px !important;
+    }
+
+    #halaman-beranda .hero-text p {
+        font-size: 10px !important;
+        margin-bottom: 4px !important;
+    }
+
+    #halaman-beranda .hero-text h2 {
+        font-size: 14.5px !important;
+        line-height: 1.35 !important;
+        margin: 0 0 10px 0 !important;
+    }
+
+    #halaman-beranda .hero-text button {
+        padding: 7px 14px !important;
+        font-size: 12px !important;
+        border-radius: 8px !important;
+    }
+
+    #halaman-beranda .hero-banner .maskot,
+    #halaman-beranda #maskot-beranda {
+        font-size: 42px !important;
+        flex-shrink: 0 !important;
+    }
+
+    #halaman-beranda .card-tantangan {
+        flex-direction: row !important;
+        justify-content: space-between !important;
+        align-items: center !important;
+        padding: 14px 16px !important;
+        gap: 10px !important;
+    }
+
+    #halaman-beranda .tantangan-info h4 {
+        font-size: 13.5px !important;
+        margin-bottom: 3px !important;
+    }
+
+    #halaman-beranda .tantangan-info p {
+        font-size: 11px !important;
+        line-height: 1.35 !important;
+    }
+
+    #halaman-beranda #btn-mulai-harian {
+        width: auto !important;
+        padding: 8px 12px !important;
+        font-size: 11.5px !important;
+        flex-shrink: 0 !important;
+    }
+}
