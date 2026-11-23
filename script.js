@@ -1044,7 +1044,13 @@ function bersihkanEditorProyek() {
 }
 
 function bungkusKodePreviewModern(kodeMentah) {
-    // Mengganti alert() bawaan browser dengan modal modern yang responsif + dukungan tekan Enter otomatis pada input
+    const styleResponsifPreview = `
+    <style>
+      @media (max-width: 480px) {
+        body { zoom: 0.82; margin: 8px; }
+      }
+    </style>`;
+
     const skripBantuanPreview = `
     <script>
       window.alert = function(pesan) {
@@ -1076,7 +1082,7 @@ function bungkusKodePreviewModern(kodeMentah) {
         }
       });
     <\/script>`;
-    return kodeMentah + skripBantuanPreview;
+    return styleResponsifPreview + kodeMentah + skripBantuanPreview;
 }
 
 function jalankanPreviewProyek() {
