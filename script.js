@@ -512,6 +512,16 @@ function pindahHalaman(idHalaman) {
         wadahMenu.classList.remove("terbuka");
         if (btnToggle) btnToggle.innerText = "☰ Menu";
     }
+
+    if (idHalaman === 'peta-karier') {
+        hitungSkillGapOtomatis();
+        tampilkanRoadmap('teknologi');
+    }
+    if (idHalaman === 'simulasi') perbaruiTombolSimulasi();
+    if (idHalaman === 'studio') {
+        let editor = document.getElementById("editor-kode-proyek");
+        if (editor && editor.value.trim() === "") muatTemplateProyek('web');
+    }
 }
 
 function toggleMenuHP() {
@@ -799,108 +809,550 @@ function lanjutSoal() {
 }
 
 
-// --- 5. STUDIO PROYEK & MODAL KONFIRMASI MODERN ---
+// --- 5. STUDIO PROYEK (AUTO-CODING, SMART ENTER & LIVE PREVIEW MODERN) ---
 let daftarProyek = JSON.parse(localStorage.getItem(kunciAkun("proyek"))) || [];
 let indeksProyekAkanDihapus = null;
+let indeksProyekSedangDiedit = null;
 
-function tampilkanProyek() {
+const kamusAutocomplete = [
+    { label: "<div>...</div>", sisip: "<div>\n  \n</div>", mundur: 7 },
+    { label: "<h1>...</h1>", sisip: "<h1></h1>", mundur: 5 },
+    { label: "<h2>...</h2>", sisip: "<h2></h2>", mundur: 5 },
+    { label: "<p>...</p>", sisip: "<p></p>", mundur: 4 },
+    { label: "<button>...</button>", sisip: "<button onclick=\"\"></button>", mundur: 9 },
+    { label: "<input type=\"text\">", sisip: "<input type=\"text\" placeholder=\"\">", mundur: 2 },
+    { label: "<input type=\"number\">", sisip: "<input type=\"number\" placeholder=\"\">", mundur: 2 },
+    { label: "<a href=\"\">...</a>", sisip: "<a href=\"https://\" target=\"_blank\"></a>", mundur: 4 },
+    { label: "<img src=\"\">", sisip: "<img src=\"\" alt=\"gambar\" style=\"max-width: 100%;\">", mundur: 41 },
+    { label: "<ul><li>...</li></ul>", sisip: "<ul>\n  <li></li>\n</ul>", mundur: 11 },
+    { label: "<style>...</style>", sisip: "<style>\n  \n</style>", mundur: 9 },
+    { label: "<script>...</script>", sisip: "<script>\n  \n</script>", mundur: 10 },
+    { label: "display: flex;", sisip: "display: flex; justify-content: center; align-items: center;", mundur: 0 },
+    { label: "background: linear-gradient(...)", sisip: "background: linear-gradient(135deg, #8b5cf6, #6366f1);", mundur: 0 },
+    { label: "border-radius: 12px;", sisip: "border-radius: 12px;", mundur: 0 },
+    { label: "document.getElementById()", sisip: "document.getElementById('')", mundur: 2 }
+];
+
+function gantiTabStudio(mode) {
+    document.getElementById("tab-studio-buat").classList.remove("aktif");
+    document.getElementById("tab-studio-link").classList.remove("aktif");
+    document.getElementById("tab-studio-" + mode).classList.add("aktif");
+
+    document.getElementById("wadah-studio-buat").style.display = (mode === 'buat') ? "block" : "none";
+    document.getElementById("wadah-studio-link").style.display = (mode === 'link') ? "block" : "none";
+}
+
+function perbaruiNomorBaris() {
+    let editor = document.getElementById("editor-kode-proyek");
+    let wadahNomor = document.getElementById("nomor-baris-kode");
+    let infoBaris = document.getElementById("info-jumlah-baris");
+    if (!editor || !wadahNomor) return;
+
+    let teks = editor.value;
+    let jumlahBaris = teks.split("\n").length;
+    let daftarAngka = [];
+    for (let i = 1; i <= jumlahBaris; i++) {
+        daftarAngka.push(i);
+    }
+    wadahNomor.innerHTML = daftarAngka.join("<br>");
+
+    if (infoBaris) {
+        infoBaris.innerText = `${jumlahBaris} Baris • ${teks.length} Karakter`;
+    }
+}
+
+function sinkronScrollEditor() {
+    let editor = document.getElementById("editor-kode-proyek");
+    let wadahNomor = document.getElementById("nomor-baris-kode");
+    if (editor && wadahNomor) {
+        wadahNomor.scrollTop = editor.scrollTop;
+    }
+}
+
+function saatEditorDiketik() {
+    perbaruiNomorBaris();
+    jalankanPreviewProyek();
+    tampilkanSaranAutocomplete();
+}
+
+function tampilkanSaranAutocomplete() {
+    let editor = document.getElementById("editor-kode-proyek");
+    let kotakSaran = document.getElementById("kotak-saran-kode");
+    if (!editor || !kotakSaran) return;
+
+    let pos = editor.selectionStart;
+    let teksSebelum = editor.value.substring(0, pos);
+    let kecocokanKata = teksSebelum.match(/([a-zA-Z0-9_<:-]+)$/);
+
+    if (!kecocokanKata || kecocokanKata[1].length < 2) {
+        kotakSaran.style.display = "none";
+        return;
+    }
+
+    let kataKetik = kecocokanKata[1].toLowerCase();
+    let hasil = kamusAutocomplete.filter(item =>
+        item.label.toLowerCase().includes(kataKetik)
+    ).slice(0, 5);
+
+    if (hasil.length === 0) {
+        kotakSaran.style.display = "none";
+        return;
+    }
+
+    kotakSaran.innerHTML = "";
+    hasil.forEach((item, idx) => {
+        let btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "item-saran-kode" + (idx === 0 ? " aktif" : "");
+        btn.innerText = item.label;
+        btn.onmousedown = (e) => {
+            e.preventDefault();
+            terapkanAutocomplete(item, kecocokanKata[1].length);
+        };
+        kotakSaran.appendChild(btn);
+    });
+    kotakSaran.style.display = "flex";
+}
+
+function terapkanAutocomplete(item, panjangKataKetik) {
+    let editor = document.getElementById("editor-kode-proyek");
+    let kotakSaran = document.getElementById("kotak-saran-kode");
+    let pos = editor.selectionStart;
+    let awalGanti = pos - panjangKataKetik;
+
+    editor.value = editor.value.substring(0, awalGanti) + item.sisip + editor.value.substring(pos);
+    let posisiBaru = awalGanti + item.sisip.length - (item.mundur || 0);
+    editor.selectionStart = editor.selectionEnd = posisiBaru;
+    editor.focus();
+
+    if (kotakSaran) kotakSaran.style.display = "none";
+    perbaruiNomorBaris();
+    jalankanPreviewProyek();
+}
+
+function aturTombolTabEditor(e) {
+    let editor = e.target;
+    let mulai = editor.selectionStart;
+    let akhir = editor.selectionEnd;
+    let nilai = editor.value;
+    let kotakSaran = document.getElementById("kotak-saran-kode");
+
+    // 1. Jika popup autocomplete terbuka & user menekan Tab / Enter / Escape
+    if (kotakSaran && kotakSaran.style.display === "flex") {
+        if (e.key === "Escape") {
+            e.preventDefault();
+            kotakSaran.style.display = "none";
+            return;
+        }
+        if (e.key === "Tab") {
+            e.preventDefault();
+            let itemPertama = kotakSaran.querySelector(".item-saran-kode");
+            if (itemPertama) itemPertama.dispatchEvent(new MouseEvent("mousedown"));
+            return;
+        }
+    }
+
+    // 2. Indentasi dengan tombol Tab
+    if (e.key === "Tab") {
+        e.preventDefault();
+        editor.value = nilai.substring(0, mulai) + "  " + nilai.substring(akhir);
+        editor.selectionStart = editor.selectionEnd = mulai + 2;
+        saatEditorDiketik();
+        return;
+    }
+
+    // 3. Auto-Close Tag HTML saat mengetik '>'
+    if (e.key === ">") {
+        let sebelumKursor = nilai.substring(0, mulai);
+        let tagMatch = sebelumKursor.match(/<([a-zA-Z][a-zA-Z0-9-]*)([^>/]*)$/);
+        const voidTags = ["br", "hr", "img", "input", "meta", "link"];
+        if (tagMatch && !voidTags.includes(tagMatch[1].toLowerCase())) {
+            e.preventDefault();
+            let namaTag = tagMatch[1];
+            let sisipan = `></${namaTag}>`;
+            editor.value = nilai.substring(0, mulai) + sisipan + nilai.substring(akhir);
+            editor.selectionStart = editor.selectionEnd = mulai + 1;
+            saatEditorDiketik();
+            return;
+        }
+    }
+
+    // 4. Auto-Close Kurung & Tanda Kutip: { }, ( ), [ ], " ", ' '
+    const pasanganOtomatis = { "{": "}", "(": ")", "[": "]", "\"": "\"", "'": "'" };
+    if (pasanganOtomatis[e.key]) {
+        e.preventDefault();
+        let tutup = pasanganOtomatis[e.key];
+        editor.value = nilai.substring(0, mulai) + e.key + tutup + nilai.substring(akhir);
+        editor.selectionStart = editor.selectionEnd = mulai + 1;
+        saatEditorDiketik();
+        return;
+    }
+
+    // 5. Smart Indent saat menekan Enter di antara tag atau kurung
+    if (e.key === "Enter") {
+        let barisSaatIni = nilai.substring(0, mulai).split("\n").pop();
+        let spasiAwal = barisSaatIni.match(/^\s*/)[0];
+        let karakterSebelum = nilai[mulai - 1];
+        let karakterSesudah = nilai[mulai];
+
+        if ((karakterSebelum === ">" && karakterSesudah === "<") || (karakterSebelum === "{" && karakterSesudah === "}")) {
+            e.preventDefault();
+            let sisipEnter = `\n${spasiAwal}  \n${spasiAwal}`;
+            editor.value = nilai.substring(0, mulai) + sisipEnter + nilai.substring(akhir);
+            editor.selectionStart = editor.selectionEnd = mulai + spasiAwal.length + 3;
+            saatEditorDiketik();
+            return;
+        } else if (spasiAwal.length > 0) {
+            e.preventDefault();
+            editor.value = nilai.substring(0, mulai) + "\n" + spasiAwal + nilai.substring(akhir);
+            editor.selectionStart = editor.selectionEnd = mulai + 1 + spasiAwal.length;
+            saatEditorDiketik();
+            return;
+        }
+    }
+}
+
+function salinKodeEditor() {
+    let kode = document.getElementById("editor-kode-proyek").value;
+    if (!kode.trim()) {
+        tampilkanNotifikasi("Editor masih kosong! ⚠️");
+        return;
+    }
+    navigator.clipboard.writeText(kode).then(() => {
+        tampilkanNotifikasi("Kode berhasil disalin ke clipboard! 📋");
+    });
+}
+
+function muatTemplateProyek(jenis) {
+    const template = {
+        web: `<div style="font-family: sans-serif; text-align: center; padding: 30px; background: #f3e8ff; border-radius: 12px;">\n  <h1 style="color: #7c3aed;">Halo, Ini Website Pertamaku! 🚀</h1>\n  <p style="color: #4b5563;">Dibuat langsung di Studio Proyek SkillBridge.</p>\n  <button style="background: #8b5cf6; color: white; border: none; padding: 10px 20px; border-radius: 8px; cursor: pointer;" onclick="alert('Keren! Tombol berfungsi!')">Klik Saya</button>\n</div>`,
+        kartu: `<div style="font-family: sans-serif; max-width: 300px; margin: 10px auto; padding: 20px; border: 2px solid #8b5cf6; border-radius: 16px; text-align: center;">\n  <div style="font-size: 40px;">🌟</div>\n  <h2 style="margin: 8px 0;">Nama Kamu</h2>\n  <p style="color: #6b7280; font-size: 13px;">Calon Web Developer & UI/UX Designer</p>\n  <span style="background: #d1fae5; color: #065f46; padding: 4px 10px; border-radius: 12px; font-size: 12px;">Siap Berkolaborasi</span>\n</div>`,
+        kalkulator: `<div style="font-family: sans-serif; max-width: 280px; margin: 10px auto; padding: 20px; background: #eef2ff; border-radius: 12px; text-align: center;">\n  <h3 style="color: #3730a3;">Penghitung Target Belajar</h3>\n  <input id="jam" type="number" placeholder="Jam belajar/hari" onkeydown="if(event.key==='Enter') document.getElementById('btn-hitung').click()" style="padding: 8px; width: 80%; border-radius: 6px; border: 1px solid #ccc;">\n  <button id="btn-hitung" onclick="document.getElementById('hasil').innerText = 'Total seminggu: ' + ((Number(document.getElementById('jam').value) || 0) * 7) + ' jam!'" style="margin-top: 10px; padding: 8px 14px; background: #4f46e5; color: white; border: none; border-radius: 6px; cursor: pointer;">Hitung</button>\n  <p id="hasil" style="font-weight: bold; margin-top: 10px; color: #1e1b4b;"></p>\n</div>`,
+        pitch: `<div style="font-family: sans-serif; padding: 20px; line-height: 1.6;">\n  <h2 style="color: #7c3aed;">Konsep Proyek: Aplikasi Pengingat Belajar</h2>\n  <p><strong>Masalah:</strong> Banyak pelajar sering menunda waktu belajar karena bingung mulai dari mana.</p>\n  <p><strong>Solusi:</strong> Membuat jadwal belajar harian singkat 15 menit dengan sistem poin.</p>\n  <p><strong>Dampak:</strong> Pelajar lebih konsisten dan tidak mudah stres.</p>\n</div>`
+    };
+    document.getElementById("editor-kode-proyek").value = template[jenis] || "";
+    perbaruiNomorBaris();
+    jalankanPreviewProyek();
+}
+
+function bersihkanEditorProyek() {
+    document.getElementById("editor-kode-proyek").value = "";
+    let kotakSaran = document.getElementById("kotak-saran-kode");
+    if (kotakSaran) kotakSaran.style.display = "none";
+    perbaruiNomorBaris();
+    jalankanPreviewProyek();
+}
+
+function bungkusKodePreviewModern(kodeMentah) {
+    // Mengganti alert() bawaan browser dengan modal modern yang responsif + dukungan tekan Enter otomatis pada input
+    const skripBantuanPreview = `
+    <script>
+      window.alert = function(pesan) {
+        let lama = document.getElementById('sb-custom-alert');
+        if (lama) lama.remove();
+        let overlay = document.createElement('div');
+        overlay.id = 'sb-custom-alert';
+        overlay.style.cssText = 'position:fixed;inset:0;background:rgba(15,23,42,0.55);display:flex;align-items:center;justify-content:center;z-index:9999;padding:16px;font-family:sans-serif;';
+        overlay.innerHTML = '<div style="background:#ffffff;color:#1e293b;padding:20px 22px;border-radius:14px;max-width:320px;width:100%;text-align:center;box-shadow:0 12px 28px rgba(0,0,0,0.2);border:1px solid #e2e8f0;">' +
+          '<div style="font-size:28px;margin-bottom:8px;">✨</div>' +
+          '<p style="margin:0 0 16px 0;font-size:14px;line-height:1.5;font-weight:500;">' + String(pesan) + '</p>' +
+          '<button id="sb-alert-ok" style="background:#8b5cf6;color:#fff;border:none;padding:9px 22px;border-radius:8px;font-weight:bold;font-size:13px;cursor:pointer;width:100%;">OK, Mengerti</button>' +
+        '</div>';
+        document.body.appendChild(overlay);
+        let btnOk = document.getElementById('sb-alert-ok');
+        btnOk.focus();
+        btnOk.onclick = function() { overlay.remove(); };
+        overlay.onclick = function(e) { if (e.target === overlay) overlay.remove(); };
+      };
+
+      document.addEventListener('keydown', function(e) {
+        if (e.key === 'Enter' && e.target && e.target.tagName === 'INPUT') {
+          let wadah = e.target.parentElement;
+          let tombol = wadah ? wadah.querySelector('button') : document.querySelector('button');
+          if (tombol) {
+            e.preventDefault();
+            tombol.click();
+          }
+        }
+      });
+    <\/script>`;
+    return kodeMentah + skripBantuanPreview;
+}
+
+function jalankanPreviewProyek() {
+    let kode = document.getElementById("editor-kode-proyek").value;
+    let iframe = document.getElementById("iframe-preview-proyek");
+    if (!iframe) return;
+    let doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(bungkusKodePreviewModern(kode));
+    doc.close();
+}
+
+function bukaPreviewLayarPenuh() {
+    let judul = document.getElementById("input-judul-editor").value.trim() || "Pratinjau Proyek";
+    let kode = document.getElementById("editor-kode-proyek").value;
+    document.getElementById("judul-modal-karya").innerText = judul;
+    document.getElementById("modal-lihat-karya").style.display = "flex";
+    let iframe = document.getElementById("iframe-modal-karya");
+    let doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(bungkusKodePreviewModern(kode));
+    doc.close();
+}
+
+function pilihBidangProyek(bidang, muatTemplateOtomatis = false) {
+    let inputHidden = document.getElementById("pilih-bidang-proyek");
+    if (inputHidden) inputHidden.value = bidang;
+
+    document.querySelectorAll(".kartu-pilih-bidang").forEach(btn => {
+        btn.classList.toggle("aktif", btn.getAttribute("data-bidang") === bidang);
+    });
+
+    if (muatTemplateOtomatis) {
+        let editor = document.getElementById("editor-kode-proyek");
+        if (editor && editor.value.trim() === "") {
+            if (bidang.includes("Desain")) muatTemplateProyek('kartu');
+            else if (bidang.includes("Komunikasi")) muatTemplateProyek('pitch');
+            else muatTemplateProyek('web');
+        }
+    }
+}
+
+let filterKaryaAktif = 'semua';
+
+function simpanProyekDariEditor() {
+    let judul = document.getElementById("input-judul-editor").value.trim();
+    let bidang = document.getElementById("pilih-bidang-proyek").value;
+    let kode = document.getElementById("editor-kode-proyek").value.trim();
+
+    if (!judul || !kode) {
+        tampilkanNotifikasi("Judul dan isi proyek tidak boleh kosong! ⚠️");
+        return;
+    }
+
+    if (indeksProyekSedangDiedit !== null) {
+        daftarProyek[indeksProyekSedangDiedit] = { nama: judul, bidang: bidang, kode: kode, tipe: "editor" };
+        localStorage.setItem(kunciAkun("proyek"), JSON.stringify(daftarProyek));
+        batalEditProyek();
+        tampilkanProyek(filterKaryaAktif);
+        bunyikanSuara('benar');
+        tampilkanNotifikasi(`Perubahan pada "${judul}" berhasil disimpan! ✏️`);
+        return;
+    }
+
+    daftarProyek.push({ nama: judul, bidang: bidang, kode: kode, tipe: "editor" });
+    localStorage.setItem(kunciAkun("proyek"), JSON.stringify(daftarProyek));
+
+    document.getElementById("input-judul-editor").value = "";
+    tampilkanProyek('semua');
+
+    let dapatKoin = 20;
+    jumlahKoin += dapatKoin;
+    poinXP += 25;
+    localStorage.setItem(kunciAkun("xp"), poinXP);
+    perbaruiTampilanKoin();
+    perbaruiLevel();
+    bunyikanSuara('benar');
+
+    tampilkanNotifikasi(`Proyek "${judul}" terbit! +25 XP & +${dapatKoin} Koin! 🎨🪙`, false);
+}
+
+function editProyekDariPortofolio(index) {
+    let proyek = daftarProyek[index];
+    if (!proyek || proyek.tipe !== "editor") return;
+
+    indeksProyekSedangDiedit = index;
+    gantiTabStudio('buat');
+
+    document.getElementById("input-judul-editor").value = proyek.nama;
+    pilihBidangProyek(proyek.bidang || "💻 Teknologi", false);
+    document.getElementById("editor-kode-proyek").value = proyek.kode;
+
+    document.getElementById("judul-mode-editor").innerText = `✏️ Mengedit Proyek: ${proyek.nama}`;
+    document.getElementById("btn-simpan-editor").innerText = "Simpan Perubahan 💾";
+    document.getElementById("btn-batal-edit").style.display = "inline-block";
+
+    perbaruiNomorBaris();
+    jalankanPreviewProyek();
+    document.getElementById("wadah-studio-buat").scrollIntoView({ behavior: "smooth" });
+}
+
+function batalEditProyek() {
+    indeksProyekSedangDiedit = null;
+    document.getElementById("input-judul-editor").value = "";
+    document.getElementById("judul-mode-editor").innerText = "Workspace Pembuat Proyek";
+    document.getElementById("btn-simpan-editor").innerText = "Simpan & Terbitkan Proyek 🚀";
+    document.getElementById("btn-batal-edit").style.display = "none";
+}
+
+function unduhProyekHTML() {
+    let judul = document.getElementById("input-judul-editor").value.trim() || "karya-skillbridge";
+    let kode = document.getElementById("editor-kode-proyek").value;
+
+    if (!kode.trim()) {
+        tampilkanNotifikasi("Tulis kode terlebih dahulu sebelum mengunduh! ⚠️");
+        return;
+    }
+
+    let isiFileLengkap = `<!DOCTYPE html>\n<html lang="id">\n<head>\n<meta charset="UTF-8">\n<meta name="viewport" content="width=device-width, initial-scale=1.0">\n<title>${judul}</title>\n</head>\n<body>\n${kode}\n</body>\n</html>`;
+
+    let blob = new Blob([isiFileLengkap], { type: "text/html" });
+    let url = URL.createObjectURL(blob);
+    let linkUnduh = document.createElement("a");
+    linkUnduh.href = url;
+    linkUnduh.download = judul.toLowerCase().replace(/[^a-z0-9]/g, "-") + ".html";
+    linkUnduh.click();
+    URL.revokeObjectURL(url);
+
+    tampilkanNotifikasi("File .html berhasil diunduh! 📥");
+}
+
+function bukaModalKarya(index) {
+    let proyek = daftarProyek[index];
+    if (!proyek) return;
+    document.getElementById("judul-modal-karya").innerText = proyek.nama;
+    document.getElementById("modal-lihat-karya").style.display = "flex";
+    let iframe = document.getElementById("iframe-modal-karya");
+    let doc = iframe.contentDocument || iframe.contentWindow.document;
+    doc.open();
+    doc.write(bungkusKodePreviewModern(proyek.kode));
+    doc.close();
+}
+
+function tutupModalKarya() {
+    let modal = document.getElementById("modal-lihat-karya");
+    if (modal) modal.style.display = "none";
+}
+
+function bukaModalHapus(index) {
+    indeksProyekAkanDihapus = index;
+    let namaProyek = daftarProyek[index].nama;
+    let judulModal = document.getElementById("judul-modal");
+    let btnYa = document.getElementById("btn-konfirmasi-ya");
+
+    judulModal.innerText = "Hapus Proyek?";
+    document.getElementById("pesan-modal").innerText = `Apakah kamu yakin ingin menghapus proyek "${namaProyek}"?`;
+    btnYa.innerText = "Ya, Hapus 🗑️";
+    btnYa.style.backgroundColor = "#ef4444";
+
+    btnYa.onclick = () => {
+        if (indeksProyekAkanDihapus !== null) {
+            if (indeksProyekSedangDiedit === indeksProyekAkanDihapus) batalEditProyek();
+            daftarProyek.splice(indeksProyekAkanDihapus, 1);
+            localStorage.setItem(kunciAkun("proyek"), JSON.stringify(daftarProyek));
+            tampilkanProyek(filterKaryaAktif);
+            tutupModalKonfirmasi();
+            tampilkanNotifikasi("Proyek telah dihapus. 🗑️");
+        }
+    };
+
+    document.getElementById("modal-konfirmasi").style.display = "flex";
+}
+
+function tutupModalKonfirmasi() {
+    indeksProyekAkanDihapus = null;
+    document.getElementById("modal-konfirmasi").style.display = "none";
+}
+
+function tampilkanProyek(filterBidang = 'semua') {
+    filterKaryaAktif = filterBidang;
+
+    document.querySelectorAll('#halaman-studio .filter-container .btn-filter').forEach(btn => {
+        if (btn.id && btn.id.startsWith('filter-karya-')) {
+            btn.classList.remove('aktif');
+        }
+    });
+
+    if (filterBidang === 'semua') document.getElementById('filter-karya-semua')?.classList.add('aktif');
+    else if (filterBidang.includes('Teknologi')) document.getElementById('filter-karya-teknologi')?.classList.add('aktif');
+    else if (filterBidang.includes('Desain')) document.getElementById('filter-karya-desain')?.classList.add('aktif');
+    else if (filterBidang.includes('Komunikasi')) document.getElementById('filter-karya-komunikasi')?.classList.add('aktif');
+
     let wadah = document.getElementById("koleksi-proyek");
     if (!wadah) return;
     wadah.innerHTML = "";
-    if (daftarProyek.length === 0) {
-        wadah.innerHTML = "<p style='color: gray; font-style: italic;'>Belum ada proyek. Yuk pamerkan karya pertamamu!</p>";
+
+    let hasilFilter = daftarProyek
+        .map((p, idx) => ({ ...p, indexAsli: idx }))
+        .filter(p => {
+            if (filterBidang === 'semua') return true;
+            let bidangProyek = p.bidang || "💻 Teknologi";
+            return bidangProyek === filterBidang;
+        });
+
+    if (hasilFilter.length === 0) {
+        wadah.innerHTML = `<div class="content-box" style="text-align: center; color: var(--text-secondary); font-size: 13.5px;">
+            Belum ada proyek pada kategori <strong>${filterBidang === 'semua' ? 'Semua' : filterBidang}</strong>.
+        </div>`;
         return;
     }
-    daftarProyek.forEach((proyek, index) => {
+
+    hasilFilter.forEach((proyek) => {
         let kartu = document.createElement("div");
         kartu.className = "card";
-        kartu.style.minWidth = "250px";
+        kartu.style.minWidth = "260px";
+
+        let labelBidang = proyek.bidang
+            ? `<span class="badge">${proyek.bidang}</span>`
+            : `<span class="badge">🔗 Tautan Luar</span>`;
+
+        let tombolAksi = proyek.tipe === "editor"
+            ? `<div style="display: flex; gap: 6px;">
+                <button type="button" onclick="bukaModalKarya(${proyek.indexAsli})" style="padding: 6px 10px; font-size: 12px;">👁️ Lihat</button>
+                <button type="button" class="btn-outline" onclick="editProyekDariPortofolio(${proyek.indexAsli})" style="padding: 6px 10px; font-size: 12px;">✏️ Edit</button>
+               </div>`
+            : `<a href="${proyek.link.startsWith('http') ? proyek.link : 'https://' + proyek.link}" target="_blank" style="background: var(--primary-color); color: white; padding: 6px 12px; border-radius: 6px; font-size: 12px; font-weight: bold; text-decoration: none;">🔗 Buka Tautan</a>`;
+
         kartu.innerHTML = `
-            <h4>${proyek.nama}</h4>
-            <p style="font-size: 12px; margin: 10px 0;">
-                <a href="${proyek.link.startsWith('http') ? proyek.link : 'https://' + proyek.link}" target="_blank" style="color: #8b5cf6; text-decoration: none;">🔗 Buka Tautan Proyek</a>
-            </p>
-            <button onclick="bukaModalHapus(${index})" style="background-color: #ef4444; padding: 6px 12px; font-size: 12px;">Hapus 🗑️</button>
+            <div style="display: flex; justify-content: space-between; align-items: center; gap: 6px;">
+                ${labelBidang}
+                <span style="font-size: 11px; color: var(--text-secondary);">${proyek.tipe === 'editor' ? 'Kode Studio' : 'Link Eksternal'}</span>
+            </div>
+            <h4 class="mt-10">${proyek.nama}</h4>
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-top: 15px; gap: 8px;">
+                ${tombolAksi}
+                <button type="button" onclick="bukaModalHapus(${proyek.indexAsli})" style="background-color: #ef4444; padding: 6px 10px; font-size: 12px;">🗑️</button>
+            </div>
         `;
         wadah.appendChild(kartu);
     });
 }
 
 function simpanProyek() {
-    let nama = document.getElementById("input-nama-proyek").value;
-    let link = document.getElementById("input-link-proyek").value;
+    let namaEl = document.getElementById("input-nama-proyek");
+    let linkEl = document.getElementById("input-link-proyek");
+    let bidangEl = document.getElementById("pilih-bidang-link");
+
+    let nama = namaEl ? namaEl.value.trim() : "";
+    let link = linkEl ? linkEl.value.trim() : "";
+    let bidang = bidangEl ? bidangEl.value : "💻 Teknologi";
+
     if (!nama || !link) {
         tampilkanNotifikasi("Pengingat: Nama dan Link proyek wajib diisi! ⚠️");
         return;
     }
-    daftarProyek.push({ nama, link });
+
+    daftarProyek.push({ nama, link, bidang, tipe: "link" });
     localStorage.setItem(kunciAkun("proyek"), JSON.stringify(daftarProyek));
-    document.getElementById("input-nama-proyek").value = "";
-    document.getElementById("input-link-proyek").value = "";
-    tampilkanProyek();
+
+    if (namaEl) namaEl.value = "";
+    if (linkEl) linkEl.value = "";
+
+    tampilkanProyek('semua');
 
     let dapatKoin = 15;
     jumlahKoin += dapatKoin;
-    perbaruiTampilanKoin();
-    bunyikanSuara('benar');
-
-    tampilkanNotifikasi(`Proyek berhasil disimpan! +20 XP & +${dapatKoin} Koin! 🚀🪙`, false);
     poinXP += 20;
     localStorage.setItem(kunciAkun("xp"), poinXP);
+    perbaruiTampilanKoin();
     perbaruiLevel();
+    bunyikanSuara('benar');
+
+    tampilkanNotifikasi(`Tautan "${nama}" berhasil disimpan! +20 XP & +${dapatKoin} Koin! 🚀🪙`, false);
 }
 
-function bukaModalHapus(index) {
-    indeksProyekAkanDihapus = index;
-    let namaProyek = daftarProyek[index].nama;
-    document.getElementById("pesan-modal").innerText = `Apakah kamu yakin ingin menghapus proyek "${namaProyek}"?`;
-    document.getElementById("modal-konfirmasi").style.display = "flex";
-    document.getElementById("btn-konfirmasi-ya").onclick = () => {
-        eksekusiHapusProyek();
-    };
-}
-
-function tutupModalKonfirmasi() {
-    document.getElementById("modal-konfirmasi").style.display = "none";
-    indeksProyekAkanDihapus = null;
-}
-
-function eksekusiHapusProyek() {
-    if (indeksProyekAkanDihapus !== null) {
-        let namaTerhapus = daftarProyek[indeksProyekAkanDihapus].nama;
-        daftarProyek.splice(indeksProyekAkanDihapus, 1);
-        localStorage.setItem(kunciAkun("proyek"), JSON.stringify(daftarProyek));
-        
-        bunyikanSuara('salah');
-        tampilkanProyek();
-        tutupModalKonfirmasi();
-        tampilkanNotifikasi(`Proyek "${namaTerhapus}" telah dihapus. 🗑️`, false);
-    }
-}
-tampilkanProyek();
-
-document.getElementById("input-nama-proyek").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        if (this.value.trim() !== "") {
-            document.getElementById("input-link-proyek").focus();
-        }
-    }
-});
-
-document.getElementById("input-link-proyek").addEventListener("keydown", function(e) {
-    if (e.key === "Enter") {
-        e.preventDefault();
-        let namaTerisi = document.getElementById("input-nama-proyek").value.trim() !== "";
-        let linkTerisi = this.value.trim() !== "";
-        if (namaTerisi && linkTerisi) {
-            simpanProyek();
-        } else if (!namaTerisi) {
-            document.getElementById("input-nama-proyek").focus();
-        }
-    }
-});
-
+tampilkanProyek('semua');
 
 // --- 6. TANTANGAN HARIAN & STREAK ---
 let sedangMengerjakanTantanganHarian = false;
@@ -1092,9 +1544,24 @@ function tampilkanNotifikasi(pesan, putarSuaraPengingat = true) {
     
     let notif = document.createElement("div");
     notif.className = "notifikasi";
-    notif.innerText = pesan;
+    notif.setAttribute("role", "button");
+    notif.setAttribute("tabindex", "0");
+    notif.title = "Klik untuk menutup notifikasi";
+    notif.innerHTML = `<span style="flex: 1;">${pesan}</span><span class="tutup-notif">✕</span>`;
+    
+    notif.onclick = () => {
+        notif.style.opacity = "0";
+        notif.style.transform = "translateY(10px)";
+        setTimeout(() => notif.remove(), 180);
+    };
+
     wadah.appendChild(notif);
-    setTimeout(() => notif.remove(), 3200);
+    setTimeout(() => {
+        if (notif.parentElement) {
+            notif.style.opacity = "0";
+            setTimeout(() => notif.remove(), 250);
+        }
+    }, 3500);
 }
 
 function salinKodeBackup() {
@@ -1566,4 +2033,664 @@ function klikTargetTangkap() {
         document.getElementById("skor-tangkap").innerText = skorTangkap;
         pindahkanTargetAcak();
     }
+}
+// --- 11. FITUR PETA KARIER, TES MINAT & ROADMAP INTERAKTIF ---
+const soalTesMinat = [
+    {
+        tanya: "1. Saat melihat aplikasi atau website keren, bagian mana yang paling membuatmu penasaran?",
+        opsi: [
+            { teks: "Bagaimana kode di balik layar bekerja dan memproses data.", bidang: "teknologi" },
+            { teks: "Perpaduan warna, tata letak tombol, dan estetika tampilannya.", bidang: "desain" },
+            { teks: "Bagaimana cara mereka menjelaskan produknya hingga orang tertarik.", bidang: "komunikasi" }
+        ]
+    },
+    {
+        tanya: "2. Dalam sebuah kerja kelompok proyek sekolah, peran apa yang paling kamu sukai?",
+        opsi: [
+            { teks: "Merakit sistem, mengatur logika teknis, atau memperbaiki error.", bidang: "teknologi" },
+            { teks: "Membuat poster, slide presentasi estetik, atau sketsa tampilan.", bidang: "desain" },
+            { teks: "Menjadi juru bicara saat presentasi dan menyusun naskah.", bidang: "komunikasi" }
+        ]
+    },
+    {
+        tanya: "3. Aktivitas mana yang paling betah kamu lakukan berjam-jam?",
+        opsi: [
+            { teks: "Memecahkan teka-teki logika dan menyusun baris kode.", bidang: "teknologi" },
+            { teks: "Menggambar, mengedit foto/UI, dan bereksperimen dengan warna.", bidang: "desain" },
+            { teks: "Menulis cerita, berdiskusi, atau membuat konten edukasi.", bidang: "komunikasi" }
+        ]
+    },
+    {
+        tanya: "4. Tantangan apa yang paling ingin kamu taklukkan bulan ini?",
+        opsi: [
+            { teks: "Membangun website interaktif dari nol.", bidang: "teknologi" },
+            { teks: "Merancang desain antarmuka aplikasi yang ramah pengguna.", bidang: "desain" },
+            { teks: "Berani tampil percaya diri berbicara di depan banyak orang.", bidang: "komunikasi" }
+        ]
+    },
+    {
+        tanya: "5. Jika suatu hari kamu membuat startup sendiri, posisi apa yang akan kamu pegang?",
+        opsi: [
+            { teks: "CTO (Kepala Teknologi & Pengembang Produk).", bidang: "teknologi" },
+            { teks: "Head of Design (Pengarah Tampilan & Pengalaman Pengguna).", bidang: "desain" },
+            { teks: "CEO / Marketing Lead (Negosiasi Klien & Strategi Komunikasi).", bidang: "komunikasi" }
+        ]
+    }
+];
+
+let indeksMinat = 0;
+let skorMinat = { teknologi: 0, desain: 0, komunikasi: 0 };
+
+function mulaiTesMinat() {
+    indeksMinat = 0;
+    skorMinat = { teknologi: 0, desain: 0, komunikasi: 0 };
+    document.getElementById("box-intro-tes-minat").style.display = "none";
+    document.getElementById("box-hasil-tes-minat").style.display = "none";
+    document.getElementById("box-soal-tes-minat").style.display = "block";
+    tampilkanSoalMinat();
+}
+
+function tampilkanSoalMinat() {
+    let data = soalTesMinat[indeksMinat];
+    document.getElementById("label-progres-minat").innerText = `Pertanyaan ${indeksMinat + 1} dari ${soalTesMinat.length}`;
+    document.getElementById("teks-soal-minat").innerText = data.tanya;
+
+    let wadah = document.getElementById("opsi-tes-minat");
+    wadah.innerHTML = "";
+
+    data.opsi.forEach(item => {
+        let btn = document.createElement("button");
+        btn.className = "btn-outline";
+        btn.style.textAlign = "left";
+        btn.innerText = item.teks;
+        btn.onclick = () => {
+            skorMinat[item.bidang]++;
+            indeksMinat++;
+            if (indeksMinat < soalTesMinat.length) {
+                tampilkanSoalMinat();
+            } else {
+                tampilkanHasilMinat();
+            }
+        };
+        wadah.appendChild(btn);
+    });
+}
+
+function tampilkanHasilMinat() {
+    document.getElementById("box-soal-tes-minat").style.display = "none";
+    document.getElementById("box-hasil-tes-minat").style.display = "block";
+
+    let pemenang = "teknologi";
+    if (skorMinat.desain > skorMinat[pemenang]) pemenang = "desain";
+    if (skorMinat.komunikasi > skorMinat[pemenang]) pemenang = "komunikasi";
+
+    const infoKarier = {
+        teknologi: {
+            judul: "💻 Web Developer & Software Engineer",
+            desc: "Kamu memiliki pola pikir logis dan analitis! Kamu sangat cocok membangun aplikasi web, mengelola data, dan memecahkan masalah teknis dengan kode.",
+            kategori: "teknologi"
+        },
+        desain: {
+            judul: "🎨 UI/UX & Product Designer",
+            desc: "Kamu memiliki kepekaan visual dan empati tinggi terhadap kenyamanan pengguna! Kamu cocok merancang tampilan aplikasi yang estetik dan mudah digunakan.",
+            kategori: "desain"
+        },
+        komunikasi: {
+            judul: "💬 Digital Communicator & Public Speaker",
+            desc: "Kamu pandai merangkai ide dan menyampaikan pesan secara persuasif! Kamu cocok di bidang presentasi proyek, copywriting, dan negosiasi klien.",
+            kategori: "komunikasi"
+        }
+    };
+
+    let hasil = infoKarier[pemenang];
+    document.getElementById("judul-hasil-minat").innerText = hasil.judul;
+    document.getElementById("deskripsi-hasil-minat").innerText = hasil.desc;
+    document.getElementById("btn-arah-belajar-minat").onclick = () => bukaRuangBelajar(hasil.kategori);
+    tampilkanRoadmap(hasil.kategori);
+    bunyikanSuara('benar');
+}
+
+function hitungSkillGapOtomatis() {
+    const hitungKategori = (kat) => {
+        let daftarId = Object.keys(kurikulumSkillBridge).filter(id => kurikulumSkillBridge[id].kategori === kat);
+        let totalPoinMaks = daftarId.length * 2;
+        let poinTercapai = 0;
+        let belumSelesai = [];
+
+        daftarId.forEach(id => {
+            if (materiSelesai.includes(id)) poinTercapai++;
+            if (kuisSelesai.includes(id)) poinTercapai++;
+            if (!materiSelesai.includes(id) || !kuisSelesai.includes(id)) {
+                belumSelesai.push(kurikulumSkillBridge[id].judul);
+            }
+        });
+
+        let persen = totalPoinMaks > 0 ? Math.round((poinTercapai / totalPoinMaks) * 100) : 0;
+        return { persen, belumSelesai };
+    };
+
+    let tech = hitungKategori("teknologi");
+    document.getElementById("persen-skill-tech").innerText = tech.persen + "%";
+    document.getElementById("bar-skill-tech").style.width = tech.persen + "%";
+    document.getElementById("saran-skill-tech").innerText = tech.belumSelesai.length > 0
+        ? "Kekurangan: " + tech.belumSelesai.slice(0, 2).join(", ")
+        : "Semua materi & kuis Web Developer sudah dikuasai! 🎉";
+
+    let desain = hitungKategori("desain");
+    document.getElementById("persen-skill-desain").innerText = desain.persen + "%";
+    document.getElementById("bar-skill-desain").style.width = desain.persen + "%";
+    document.getElementById("saran-skill-desain").innerText = desain.belumSelesai.length > 0
+        ? "Kekurangan: " + desain.belumSelesai.slice(0, 2).join(", ")
+        : "Semua materi & kuis UI/UX Designer sudah dikuasai! 🎉";
+
+    let kom = hitungKategori("komunikasi");
+    document.getElementById("persen-skill-kom").innerText = kom.persen + "%";
+    document.getElementById("bar-skill-kom").style.width = kom.persen + "%";
+    document.getElementById("saran-skill-kom").innerText = kom.belumSelesai.length > 0
+        ? "Kekurangan: " + kom.belumSelesai.slice(0, 2).join(", ")
+        : "Semua materi & kuis Komunikasi sudah dikuasai! 🎉";
+}
+
+const detailPetaKarier = {
+    teknologi: {
+        judulProfesi: "💻 Web Developer & Software Engineer",
+        ringkasan: "Merancang, membangun, dan memelihara situs web maupun aplikasi interaktif dari sisi tampilan (Front-End) hingga logika pemrosesan data.",
+        toolsUtama: ["HTML5", "CSS3 & Flexbox", "JavaScript (ES6+)", "DOM & LocalStorage", "Git / GitHub"],
+        keterampilanInti: [
+            "Menyusun struktur semantik halaman web yang rapi dan aksesibel.",
+            "Membangun tata letak responsif untuk layar HP dan Desktop.",
+            "Mengelola interaksi pengguna, validasi input, dan penyimpanan data lokal."
+        ],
+        proyekWajib: "Bangun aplikasi web mini (seperti kalkulator target atau halaman portofolio interaktif) di Studio Proyek.",
+        simulasiTerkait: "freelancer"
+    },
+    desain: {
+        judulProfesi: "🎨 UI/UX & Product Designer",
+        ringkasan: "Menciptakan pengalaman digital yang intuitif, estetis, dan mudah dipahami pengguna melalui riset alur, kerangka wireframe, dan sistem desain.",
+        toolsUtama: ["Wireframing", "Color Theory (60-30-10)", "Typography", "Design System", "Usability Testing"],
+        keterampilanInti: [
+            "Menerapkan hierarki visual dan ruang kosong (Whitespace) agar layar tidak padat.",
+            "Memilih kontras warna yang nyaman dibaca di berbagai ukuran layar.",
+            "Merancang alur pengguna (User Flow) sebelum masuk ke tahap pengkodean."
+        ],
+        proyekWajib: "Rancang kartu profil visual atau komponen antarmuka modern di Studio Proyek.",
+        simulasiTerkait: "desainer"
+    },
+    komunikasi: {
+        judulProfesi: "💬 Digital Communicator & Public Speaker",
+        ringkasan: "Menjembatani ide teknis maupun produk kepada audiens melalui teknik bercerita (storytelling), tulisan persuasif, dan presentasi yang memikat.",
+        toolsUtama: ["Formula AIDA", "Hook 30 Detik", "Storytelling (Masalah-Solusi-Dampak)", "Pitch Deck", "Negosiasi Klien"],
+        keterampilanInti: [
+            "Menyusun kalimat pembuka (Hook) yang langsung menarik perhatian.",
+            "Mengubah fitur teknis yang rumit menjadi manfaat yang mudah dipahami.",
+            "Mempresentasikan proyek dan melakukan negosiasi secara profesional."
+        ],
+        proyekWajib: "Tulis naskah presentasi (pitching) solusi produk menggunakan kerangka Masalah-Solusi-Dampak di Studio Proyek.",
+        simulasiTerkait: "kreator"
+    }
+};
+
+function tampilkanRoadmap(kategori) {
+    ['teknologi', 'desain', 'komunikasi'].forEach(k => {
+        let btn = document.getElementById('btn-roadmap-' + k);
+        if (btn) btn.classList.remove('aktif');
+    });
+    let btnAktif = document.getElementById('btn-roadmap-' + kategori);
+    if (btnAktif) btnAktif.classList.add('aktif');
+
+    let wadah = document.getElementById("wadah-roadmap-karier");
+    if (!wadah) return;
+
+    let info = detailPetaKarier[kategori];
+    let daftarKursus = Object.keys(kurikulumSkillBridge).filter(id => kurikulumSkillBridge[id].kategori === kategori);
+
+    // Hitung progres jalur ini
+    let totalLangkah = daftarKursus.length * 2;
+    let langkahSelesai = 0;
+    daftarKursus.forEach(id => {
+        if (materiSelesai.includes(id)) langkahSelesai++;
+        if (kuisSelesai.includes(id)) langkahSelesai++;
+    });
+    let persenJalur = totalLangkah > 0 ? Math.round((langkahSelesai / totalLangkah) * 100) : 0;
+
+    let html = `
+        <div class="kartu-info-profesi">
+            <div style="display: flex; justify-content: space-between; align-items: flex-start; flex-wrap: wrap; gap: 10px;">
+                <div>
+                    <span class="badge">Profil Jalur Karier</span>
+                    <h3 class="mt-10">${info.judulProfesi}</h3>
+                </div>
+                <div style="text-align: right;">
+                    <span style="font-size: 12px; color: var(--text-secondary);">Kesiapan Jalur Ini</span>
+                    <div style="font-size: 20px; font-weight: bold; color: var(--primary-color);">${persenJalur}%</div>
+                </div>
+            </div>
+            <p style="font-size: 13.5px; color: var(--text-secondary); margin: 10px 0 14px 0; line-height: 1.6;">
+                ${info.ringkasan}
+            </p>
+
+            <div style="margin-bottom: 12px;">
+                <strong style="font-size: 12.5px;">🛠️ Tools & Konsep Utama:</strong>
+                <div style="display: flex; gap: 6px; flex-wrap: wrap; margin-top: 6px;">
+                    ${info.toolsUtama.map(t => `<span class="chip-tool-karier">${t}</span>`).join("")}
+                </div>
+            </div>
+
+            <div>
+                <strong style="font-size: 12.5px;">🎯 Kompetensi yang Harus Dikuasai:</strong>
+                <ul style="margin: 6px 0 0 18px; font-size: 13px; color: var(--text-secondary); line-height: 1.6;">
+                    ${info.keterampilanInti.map(k => `<li>${k}</li>`).join("")}
+                </ul>
+            </div>
+        </div>
+
+        <h4 style="margin: 18px 0 12px 0;">📍 Tahapan Pembelajaran & Evaluasi Kompetensi</h4>
+        <div class="timeline-roadmap">
+    `;
+
+    daftarKursus.forEach((id, urutan) => {
+        let item = kurikulumSkillBridge[id];
+        let sudahMateri = materiSelesai.includes(id);
+        let sudahKuis = kuisSelesai.includes(id);
+        let tuntas = sudahMateri && sudahKuis;
+        let estimasiWaktu = item.tingkat === "Menengah" ? "20–25 Menit" : "10–15 Menit";
+
+        html += `
+            <div class="item-roadmap ${tuntas ? 'tuntas' : ''}">
+                <div class="titik-roadmap">${tuntas ? '✓' : (urutan + 1)}</div>
+                <div class="konten-roadmap">
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;">
+                        <div style="display: flex; gap: 6px; align-items: center; flex-wrap: wrap;">
+                            <span class="badge">${tuntas ? 'Tahap ' + (urutan + 1) + ' Tuntas' : 'Tahap ' + (urutan + 1)}</span>
+                            <span class="${item.tingkat === 'Menengah' ? 'badge-menengah' : 'badge'}">${item.tingkat}</span>
+                            <span style="font-size: 11.5px; color: var(--text-secondary);">⏱️ ${estimasiWaktu}</span>
+                        </div>
+                        <span style="font-size: 12px; font-weight: bold; color: ${tuntas ? '#10b981' : '#f59e0b'};">
+                            ${tuntas ? 'Kompetensi Tercapai' : (sudahMateri || sudahKuis ? 'Sedang Dipelajari' : 'Belum Dimulai')}
+                        </span>
+                    </div>
+
+                    <h4 class="mt-10">${item.judul}</h4>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 4px 0 10px 0;">${item.deskripsi}</p>
+
+                    <div style="background: var(--bg-card); padding: 10px 12px; border-radius: 8px; border: 1px solid var(--border-color); margin-bottom: 12px;">
+                        <strong style="font-size: 12px;">Target Penguasaan Modul:</strong>
+                        <ul style="margin: 5px 0 0 16px; font-size: 12.5px; color: var(--text-secondary); line-height: 1.5;">
+                            ${item.tujuan.map(t => `<li>${t}</li>`).join("")}
+                        </ul>
+                    </div>
+
+                    <div style="display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px;">
+                        <div style="display: flex; gap: 8px; font-size: 12px;">
+                            <span class="status-cek ${sudahMateri ? 'oke' : ''}">${sudahMateri ? '✅' : '⬜'} Baca Materi</span>
+                            <span class="status-cek ${sudahKuis ? 'oke' : ''}">${sudahKuis ? '✅' : '⬜'} Lulus Kuis (${item.kuis.length} Soal)</span>
+                        </div>
+                        <div style="display: flex; gap: 8px; flex-wrap: wrap;">
+                            <button class="${sudahMateri ? 'btn-outline' : ''}" style="padding: 7px 12px; font-size: 12.5px;" onclick="bukaDetailKursus('${id}')">
+                                ${sudahMateri ? 'Ulangi Materi' : '1. Pelajari Materi →'}
+                            </button>
+                            <button class="${sudahKuis ? 'btn-outline' : ''}" style="padding: 7px 12px; font-size: 12.5px;" onclick="mulaiKuis('${id}')">
+                                ${sudahKuis ? 'Latihan Kuis Ulang' : '2. Kerjakan Kuis 🎯'}
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        `;
+    });
+
+    // Tahap Praktik Proyek & Simulasi Karier di bagian akhir roadmap
+    html += `
+            <div class="item-roadmap">
+                <div class="titik-roadmap">🛠️</div>
+                <div class="konten-roadmap" style="border: 1.5px dashed var(--primary-color);">
+                    <span class="badge">Tahap Akhir 1 • Pembuktian Portofolio</span>
+                    <h4 class="mt-10">Praktik Pembuatan Karya Nyata</h4>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 6px 0 12px 0;">
+                        ${info.proyekWajib}
+                    </p>
+                    <button style="padding: 8px 14px; font-size: 12.5px;" onclick="pindahHalaman('studio')">Buka Studio Proyek 🛠️</button>
+                </div>
+            </div>
+
+            <div class="item-roadmap">
+                <div class="titik-roadmap">🌍</div>
+                <div class="konten-roadmap" style="border: 1.5px dashed #10b981;">
+                    <span class="badge" style="background: #d1fae5; color: #065f46;">Tahap Akhir 2 • Uji Dunia Kerja</span>
+                    <h4 class="mt-10">Simulasi Pengambilan Keputusan Karier</h4>
+                    <p style="font-size: 13px; color: var(--text-secondary); margin: 6px 0 12px 0;">
+                        Uji kesiapan mental, manajemen waktu, dan negosiasi klien pada jalur ${info.judulProfesi}.
+                    </p>
+                    <button style="background-color: #10b981; padding: 8px 14px; font-size: 12.5px;" onclick="pindahHalaman('simulasi'); mulaiSimulasi('${info.simulasiTerkait}')">
+                        Mulai Simulasi Karier Ini →
+                    </button>
+                </div>
+            </div>
+        </div>
+    `;
+
+    wadah.innerHTML = html;
+}
+
+
+// --- 12. FITUR SIMULASI KARIER LENGKAP (3 JALUR, UPGRADE ALAT & GELAR KARIER) ---
+let uangPemain = 500000;
+let stressPemain = 10;
+let reputasiPemain = 50;
+let alatSudahUpgrade = false;
+let jenisSimulasiAktif = "freelancer";
+let skenarioAktif = [];
+let gelarKarierDimiliki = JSON.parse(localStorage.getItem(kunciAkun("gelar_karier"))) || [];
+
+const skenarioFreelancer = [
+    {
+        id: 0,
+        babak: "Minggu 1 • Proyek Pertama",
+        teks: "Bulan pertamamu sebagai Freelancer Web dimulai! Tabunganmu Rp 500.000. Ada klien minta dibuatkan website toko online lengkap, tapi menawar harga sangat murah: Rp 300.000. Apa keputusanmu?",
+        pilihan: [
+            { teks: "A. Terima saja hitung-hitung untuk portofolio.", efekUang: 300000, efekStress: 35, efekRep: 5, lanjutKe: 1 },
+            { teks: "B. Tolak dengan halus dan cari klien lain yang lebih menghargai.", efekUang: -50000, efekStress: -5, efekRep: 0, lanjutKe: 2 },
+            { teks: "C. Negosiasi profesional & jelaskan manfaat fitur agar dibayar Rp 1.200.000.", efekUang: 0, efekStress: 15, efekRep: 15, lanjutKe: 3 }
+        ]
+    },
+    {
+        id: 1,
+        babak: "Minggu 2 • Drama Revisi",
+        teks: "Klien murah itu ternyata minta revisi berkali-kali di tengah malam tanpa tambahan biaya. Kamu kurang tidur dan stres meningkat!",
+        pilihan: [{ teks: "Selesaikan sesuai janji & lanjut ke Minggu 3 →", efekUang: 0, efekStress: 10, efekRep: 10, lanjutKe: 4 }]
+    },
+    {
+        id: 2,
+        babak: "Minggu 2 • Peluang Baru",
+        teks: "Kamu menolak proyek murah itu. Meski keluar Rp 50.000 untuk kuota internet saat mencari klien, minggu depannya kamu mendapat klien bisnis yang membayar Rp 2.500.000!",
+        pilihan: [{ teks: "Kerjakan proyek dengan fokus →", efekUang: 2500000, efekStress: 15, efekRep: 20, lanjutKe: 4 }]
+    },
+    {
+        id: 3,
+        babak: "Minggu 2 • Kesepakatan Profesional",
+        teks: "Klien menghargai cara komunikasimu dan setuju menaikkan bayaran menjadi Rp 1.200.000! Proyek berjalan tertib sesuai kontrak.",
+        pilihan: [{ teks: "Selesaikan proyek & lanjut ke Minggu 3 →", efekUang: 1200000, efekStress: 10, efekRep: 20, lanjutKe: 4 }]
+    },
+    {
+        id: 4,
+        babak: "Minggu 3 • Tawaran Proyek Kilat",
+        teks: "Reputasimu mulai dikenal! Tiba-tiba ada klien darurat menawarkan Rp 2.000.000 jika kamu bisa menyelesaikan landing page dalam 24 jam nonstop. Perhatikan tingkat stresmu sebelum memilih!",
+        pilihan: [
+            { teks: "A. Ambil tantangan! Lembur semalaman demi uang tambahan.", efekUang: 2000000, efekStress: 45, efekRep: 15, lanjutKe: 5 },
+            { teks: "B. Tolak dengan sopan demi menjaga kesehatan & kualitas tidur.", efekUang: 0, efekStress: -20, efekRep: 0, lanjutKe: 5 }
+        ]
+    },
+    {
+        id: 5,
+        babak: "Minggu 4 • Evaluasi Akhir Bulan",
+        teks: "Akhir bulan tiba! Kamu harus membayar biaya internet & kebutuhan bulanan sebesar Rp 400.000, lalu menentukan langkah berikutnya.",
+        pilihan: [
+            { teks: "Bayar tagihan & ikuti pelatihan upgrade skill (-Rp 600.000, Stres -15%)", efekUang: -600000, efekStress: -15, efekRep: 10, lanjutKe: 99 },
+            { teks: "Bayar tagihan & tabung sisa penghasilan (-Rp 400.000)", efekUang: -400000, efekStress: -5, efekRep: 5, lanjutKe: 99 }
+        ]
+    },
+    {
+        id: 99,
+        babak: "🎉 SIMULASI BERHASIL DISELESAIKAN!",
+        teks: "Luar biasa! Kamu berhasil melewati bulan pertamamu sebagai freelancer dengan selamat dan meraih gelar '💼 Freelancer Tangguh'!",
+        pilihan: [{ teks: "Klaim Gelar, +30 XP & +20 Koin 🏆", efekUang: 0, efekStress: 0, efekRep: 0, lanjutKe: -1 }]
+    }
+];
+
+const skenarioDesainer = [
+    {
+        id: 0,
+        babak: "Minggu 1 • Audit Desain Aplikasi",
+        teks: "Kamu bergabung sebagai UI/UX Designer dengan modal Rp 600.000. Tim developer meminta desain halaman pembayaran selesai dalam 2 hari tanpa riset pengguna terlebih dahulu. Apa keputusanmu?",
+        pilihan: [
+            { teks: "A. Langsung menggambar tampilan warna-warni tanpa memikirkan alur pengguna.", efekUang: 800000, efekStress: 15, efekRep: -20, lanjutKe: 1 },
+            { teks: "B. Buat Wireframe sederhana & uji ke 3 teman terlebih dahulu sebelum memberi warna.", efekUang: 1200000, efekStress: 20, efekRep: 25, lanjutKe: 1 }
+        ]
+    },
+    {
+        id: 1,
+        babak: "Minggu 2 • Revisi Kontras & Aksesibilitas",
+        teks: "Klien meminta tulisan tombol dibuat berwarna kuning muda di atas latar putih karena terlihat 'lucu', padahal tulisan tersebut sulit dibaca pengguna.",
+        pilihan: [
+            { teks: "A. Edukasi klien tentang pentingnya kontras UI & tawarkan alternatif warna yang tetap estetik.", efekUang: 1500000, efekStress: 15, efekRep: 25, lanjutKe: 99 },
+            { teks: "B. Ikuti saja kemauan klien tanpa memberi saran.", efekUang: 1000000, efekStress: 10, efekRep: -15, lanjutKe: 99 }
+        ]
+    },
+    {
+        id: 99,
+        babak: "🎉 SIMULASI UI/UX DESIGNER SELESAI!",
+        teks: "Keren! Kamu berhasil menyeimbangkan estetika dan kenyamanan pengguna. Kamu meraih gelar '🎨 Desainer Empatik'!",
+        pilihan: [{ teks: "Klaim Gelar, +30 XP & +20 Koin 🏆", efekUang: 0, efekStress: 0, efekRep: 0, lanjutKe: -1 }]
+    }
+];
+
+const skenarioKreator = [
+    {
+        id: 0,
+        babak: "Bulan 1 • Membangun Audiens",
+        teks: "Kamu memulai karier sebagai Kreator Konten Edukasi & Pembicara dengan tabungan Rp 400.000. Konten pertamamu mulai ramai, lalu sebuah merek aplikasi belajar menawarkan endorse Rp 1.500.000, tapi aplikasinya punya ulasan buruk dari pengguna. Apa keputusanmu?",
+        pilihan: [
+            { teks: "A. Terima langsung demi uang cepat Rp 1.500.000.", efekUang: 1500000, efekStress: 15, efekRep: -30, lanjutKe: 1 },
+            { teks: "B. Tolak demi menjaga kepercayaan pengikutmu.", efekUang: 0, efekStress: 5, efekRep: 20, lanjutKe: 1 }
+        ]
+    },
+    {
+        id: 1,
+        babak: "Bulan 2 • Undangan Seminar Nasional",
+        teks: "Kamu diundang menjadi pembicara utama di acara seminar pelajar dengan bayaran Rp 2.000.000! Namun kamu merasa sedikit demam panggung.",
+        pilihan: [
+            { teks: "A. Latihan teknik Hook & storytelling 3 hari penuh sebelum tampil.", efekUang: 2000000, efekStress: 20, efekRep: 25, lanjutKe: 99 },
+            { teks: "B. Datang tanpa persiapan dan hanya membaca slide teks.", efekUang: 1000000, efekStress: 35, efekRep: -25, lanjutKe: 99 }
+        ]
+    },
+    {
+        id: 99,
+        babak: "🎉 SIMULASI KREATOR SELESAI!",
+        teks: "Hebat! Kamu membuktikan bahwa integritas dan persiapan komunikasi adalah kunci sukses. Kamu meraih gelar '🎙️ Komunikator Andal'!",
+        pilihan: [{ teks: "Klaim Gelar, +30 XP & +20 Koin 🏆", efekUang: 0, efekStress: 0, efekRep: 0, lanjutKe: -1 }]
+    }
+];
+
+const skenarioAgensi = [
+    {
+        id: 0,
+        babak: "Bulan 1 • Pendirian Agensi",
+        teks: "Kamu memimpin Agensi Digital dengan modal Rp 5.000.000. Sebuah perusahaan meminta pembuatan aplikasi & branding dalam 1 minggu. Bagaimana strategimu?",
+        pilihan: [
+            { teks: "A. Kerjakan sendiri semua bagian demi menghemat modal.", efekUang: 3000000, efekStress: 55, efekRep: -10, lanjutKe: 1 },
+            { teks: "B. Rekrut 1 desainer & 1 developer lepas (Biaya Rp 2.000.000).", efekUang: 2500000, efekStress: 15, efekRep: 25, lanjutKe: 1 }
+        ]
+    },
+    {
+        id: 1,
+        babak: "Bulan 2 • Krisis Server Klien",
+        teks: "Tiba-tiba website klien mengalami gangguan saat acara peluncuran mereka! Klien panik dan meneleponmu.",
+        pilihan: [
+            { teks: "A. Segera minta maaf, perbaiki bug secepatnya & beri kompensasi gratis.", efekUang: -500000, efekStress: 25, efekRep: 20, lanjutKe: 99 },
+            { teks: "B. Menyalahkan klien karena salah mengoperasikan sistem.", efekUang: 0, efekStress: 20, efekRep: -45, lanjutKe: 99 }
+        ]
+    },
+    {
+        id: 99,
+        babak: "🎉 SIMULASI AGENSI SELESAI!",
+        teks: "Luar biasa! Kepemimpinanmu menyelamatkan perusahaan dari krisis. Kamu meraih gelar '🚀 CEO Agensi Muda'!",
+        pilihan: [{ teks: "Klaim Gelar, +30 XP & +20 Koin 🏆", efekUang: 0, efekStress: 0, efekRep: 0, lanjutKe: -1 }]
+    }
+];
+
+function perbaruiTombolSimulasi() {
+    let btnAgensi = document.getElementById("btn-simulasi-agensi");
+    if (btnAgensi) {
+        if (poinXP >= 50) {
+            btnAgensi.classList.remove("btn-disabled");
+            btnAgensi.disabled = false;
+            btnAgensi.innerText = "Mulai Simulasi →";
+        } else {
+            btnAgensi.classList.add("btn-disabled");
+            btnAgensi.disabled = true;
+            btnAgensi.innerText = `Terkunci (Butuh 50 XP, kamu: ${poinXP} XP) 🔒`;
+        }
+    }
+
+    let wadahGelar = document.getElementById("wadah-gelar-karier");
+    if (wadahGelar) {
+        if (gelarKarierDimiliki.length === 0) {
+            wadahGelar.innerHTML = `<span style="font-size: 13px; color: var(--text-secondary); font-style: italic;">Belum ada gelar karier. Selesaikan salah satu simulasi di bawah untuk mendapatkannya!</span>`;
+        } else {
+            wadahGelar.innerHTML = gelarKarierDimiliki.map(g => `<span class="chip-riwayat">${g}</span>`).join("");
+        }
+    }
+}
+
+function mulaiSimulasi(jenis) {
+    if (jenis === 'agensi' && poinXP < 50) {
+        tampilkanNotifikasi("Kumpulkan minimal 50 XP untuk membuka Simulasi Agensi! 🔒");
+        return;
+    }
+
+    jenisSimulasiAktif = jenis;
+    alatSudahUpgrade = false;
+    let btnUpgrade = document.getElementById("btn-upgrade-alat");
+    if (btnUpgrade) {
+        btnUpgrade.disabled = false;
+        btnUpgrade.innerText = "⚡ Upgrade Peralatan Pro (-Rp 800.000 | Bonus Bayaran +25%)";
+    }
+
+    document.getElementById('daftar-pilihan-simulasi').style.display = 'none';
+    document.getElementById('layar-game').style.display = 'block';
+
+    if (jenis === 'agensi') {
+        uangPemain = 5000000;
+        stressPemain = 15;
+        reputasiPemain = 60;
+        skenarioAktif = skenarioAgensi;
+    } else if (jenis === 'desainer') {
+        uangPemain = 600000;
+        stressPemain = 10;
+        reputasiPemain = 55;
+        skenarioAktif = skenarioDesainer;
+    } else if (jenis === 'kreator') {
+        uangPemain = 400000;
+        stressPemain = 10;
+        reputasiPemain = 55;
+        skenarioAktif = skenarioKreator;
+    } else {
+        uangPemain = 500000;
+        stressPemain = 10;
+        reputasiPemain = 50;
+        skenarioAktif = skenarioFreelancer;
+    }
+    muatCerita(0);
+}
+
+function aksiCepatSimulasi(jenisAksi) {
+    if (jenisAksi === 'kopi') {
+        if (uangPemain < 50000) {
+            tampilkanNotifikasi("Saldo tidak cukup untuk membeli kopi! ⚠️");
+            return;
+        }
+        uangPemain -= 50000;
+        stressPemain = Math.max(0, stressPemain - 15);
+        bunyikanSuara('klik');
+        tampilkanNotifikasi("Istirahat sejenak! Stres berkurang 15% ☕", false);
+    } else if (jenisAksi === 'upgrade') {
+        if (alatSudahUpgrade) return;
+        if (uangPemain < 800000) {
+            tampilkanNotifikasi("Butuh saldo minimal Rp 800.000 untuk upgrade peralatan! ⚠️");
+            return;
+        }
+        uangPemain -= 800000;
+        alatSudahUpgrade = true;
+        let btnUpgrade = document.getElementById("btn-upgrade-alat");
+        if (btnUpgrade) {
+            btnUpgrade.disabled = true;
+            btnUpgrade.innerText = "✓ Peralatan Pro Aktif (+25% Bayaran)";
+        }
+        bunyikanSuara('benar');
+        tampilkanNotifikasi("Peralatan di-upgrade ke versi Pro! Penghasilan proyek naik 25% ⚡", false);
+    }
+    perbaruiHeaderSimulasi();
+}
+
+function perbaruiHeaderSimulasi() {
+    document.getElementById('status-uang').innerText = `💰 Saldo: Rp ${uangPemain.toLocaleString('id-ID')}`;
+    document.getElementById('status-reputasi').innerText = `⭐ Reputasi: ${reputasiPemain}%`;
+    document.getElementById('status-stress').innerText = `🤯 Stres: ${stressPemain}%`;
+    document.getElementById('status-alat').innerText = alatSudahUpgrade ? `⚡ Alat: Pro (+25%)` : `💻 Alat: Standar`;
+}
+
+function tutupLayarSimulasi() {
+    document.getElementById('layar-game').style.display = 'none';
+    document.getElementById('daftar-pilihan-simulasi').style.display = 'flex';
+    perbaruiTombolSimulasi();
+}
+
+function muatCerita(idCerita) {
+    if (idCerita === -1) {
+        const petaGelar = {
+            freelancer: "💼 Freelancer Tangguh",
+            desainer: "🎨 Desainer Empatik",
+            kreator: "🎙️ Komunikator Andal",
+            agensi: "🚀 CEO Agensi Muda"
+        };
+        let gelarBaru = petaGelar[jenisSimulasiAktif];
+        if (gelarBaru && !gelarKarierDimiliki.includes(gelarBaru)) {
+            gelarKarierDimiliki.push(gelarBaru);
+            localStorage.setItem(kunciAkun("gelar_karier"), JSON.stringify(gelarKarierDimiliki));
+        }
+
+        tutupLayarSimulasi();
+        beriHadiahGame(30, 20, `Simulasi selesai! Gelar ${gelarBaru} diraih (+30 XP & +20 Koin)! 🏆`);
+        return;
+    }
+
+    perbaruiHeaderSimulasi();
+    const tempatTombol = document.getElementById('tombol-opsi');
+    tempatTombol.innerHTML = '';
+
+    // Cek Kondisi Game Over
+    if (stressPemain >= 100 || uangPemain < 0 || reputasiPemain <= 0) {
+        bunyikanSuara('salah');
+        document.getElementById('badge-babak-simulasi').innerText = "❌ SIMULASI GAGAL (GAME OVER)";
+        let alasan = stressPemain >= 100
+            ? "Tingkat stresmu mencapai 100% (Burnout)! Gunakan fitur istirahat atau hindari beban kerja berlebihan."
+            : uangPemain < 0
+            ? "Saldomu habis (Bangkrut)! Kelola arus kas dan pengeluaran dengan lebih cermat."
+            : "Reputasimu jatuh ke 0%! Kepercayaan klien dan audiens adalah kunci utama dalam berkarier.";
+
+        document.getElementById('teks-cerita').innerText = alasan;
+        let btnUlang = document.createElement('button');
+        btnUlang.innerText = "Coba Lagi dari Awal 🔄";
+        btnUlang.onclick = () => tutupLayarSimulasi();
+        tempatTombol.appendChild(btnUlang);
+        return;
+    }
+
+    const cerita = skenarioAktif.find(c => c.id === idCerita);
+    document.getElementById('badge-babak-simulasi').innerText = cerita.babak || "Simulasi";
+    document.getElementById('teks-cerita').innerText = cerita.teks;
+
+    cerita.pilihan.forEach(opsi => {
+        const btn = document.createElement('button');
+        btn.innerText = opsi.teks;
+        btn.style.textAlign = 'left';
+        btn.onclick = () => {
+            let perubahanUang = opsi.efekUang || 0;
+            if (perubahanUang > 0 && alatSudahUpgrade) {
+                perubahanUang = Math.round(perubahanUang * 1.25);
+            }
+
+            uangPemain += perubahanUang;
+            stressPemain += (opsi.efekStress || 0);
+            reputasiPemain += (opsi.efekRep || 0);
+
+            if (stressPemain > 100) stressPemain = 100;
+            if (stressPemain < 0) stressPemain = 0;
+            if (reputasiPemain > 100) reputasiPemain = 100;
+            if (reputasiPemain < 0) reputasiPemain = 0;
+
+            muatCerita(opsi.lanjutKe);
+        };
+        tempatTombol.appendChild(btn);
+    });
 }
